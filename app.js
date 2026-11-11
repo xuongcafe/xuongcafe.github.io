@@ -15,11 +15,12 @@ const pghEncodeTicketDataOnly=ticket=>{
     const c=ticket&&ticket.customer&&typeof ticket.customer==="object"?ticket.customer:{};
     const co=ticket&&ticket.company&&typeof ticket.company==="object"?ticket.company:{};
     const prods=Array.isArray(ticket.products)?ticket.products:[];
-    const obj={v:1,soPhieu:ticket.soPhieu||"",soPhieuXuat:ticket.soPhieuXuat||"",soPO:ticket.soPO||"",ngayGiao:ticket.ngayGiao||"",
-      kh:{ma:c.maKhach||"",ten:c.tenDaiLy||"",dc:c.diaChi||"",nn:c.nguoiNhan||"",sdt:c.sdt||c.sdtNhan||"",xe:c.loaiXe||ticket.loaiXe||""},
-      ct:{ten:co.tenXuong||"",sdt:co.sdtXuong||"",mail:co.emailXuong||"",dc:co.diaChiXuong||"",logo:co.logo||""},
-      sp:prods.map(p=>{const q=p&&typeof p==="object"?p:{};return [q.maKho||"",q.maFast||"",q.tenSP||"",q.quyCach||"",q.ngaySX||"",Number(q.soGoi)||0,String(q.donVi||""),Number(q.soKg)||0];}),
-      tong:ticket.totalKg||0};
+    // KHONG nhét logo vô QR - logo là base64 dài cả trăm ngàn ký tự, làm QR quá dài không quét được. Viewer sẽ hiện chữ LOGO thay.
+    const obj=[1,ticket.soPhieu||"",ticket.soPhieuXuat||"",ticket.soPO||"",ticket.ngayGiao||"",
+      [c.maKhach||"",c.tenDaiLy||"",c.diaChi||"",c.nguoiNhan||"",c.sdt||c.sdtNhan||"",c.loaiXe||ticket.loaiXe||""],
+      [co.tenXuong||"",co.sdtXuong||"",co.emailXuong||"",co.diaChiXuong||""],
+      prods.map(p=>{const q=p&&typeof p==="object"?p:{};return [q.maKho||"",q.maFast||"",q.tenSP||"",q.quyCach||"",q.ngaySX||"",Number(q.soGoi)||0,String(q.donVi||""),Number(q.soKg)||0];}),
+      ticket.totalKg||0];
     const json=JSON.stringify(obj);
     let bin="";for(let i=0;i<json.length;i++)bin+=String.fromCharCode(json.charCodeAt(i)&255);
     // base64 without unicode issues - keep ascii only via encodeURIComponent
@@ -32,7 +33,9 @@ const pghDecodeTicketDataOnly=text=>{
     const s=String(text||"").trim();
     if(!s.startsWith(PGH_QR_PREFIX))return null;
     const json=decodeURIComponent(escape(atob(s.slice(PGH_QR_PREFIX.length))));
-    const o=JSON.parse(json);if(!o||o.v!==1)return null;
+    const o=JSON.parse(json);
+    if(Array.isArray(o)){ if(o[0]!==1) return null; const kh=o[5]||[]; const ct=o[6]||[]; return {soPhieu:o[1]||"",soPhieuXuat:o[2]||"",soPO:o[3]||"",ngayGiao:o[4]||"",customer:{maKhach:kh[0]||"",tenDaiLy:kh[1]||"",diaChi:kh[2]||"",nguoiNhan:kh[3]||"",sdt:kh[4]||"",loaiXe:kh[5]||""},company:{tenXuong:ct[0]||"",sdtXuong:ct[1]||"",emailXuong:ct[2]||"",diaChiXuong:ct[3]||"",logo:""},products:(o[7]||[]).map(r=>({maKho:r[0]||"",maFast:r[1]||"",tenSP:r[2]||"",quyCach:r[3]||"",ngaySX:r[4]||"",soGoi:r[5]||0,donVi:r[6]||"",soKg:r[7]||0})),totalKg:o[8]||0}; }
+    if(!o||o.v!==1)return null;
     return {soPhieu:o.soPhieu||"",soPhieuXuat:o.soPhieuXuat||"",soPO:o.soPO||"",ngayGiao:o.ngayGiao||"",
       customer:{maKhach:o.kh.ma||"",tenDaiLy:o.kh.ten||"",diaChi:o.kh.dc||"",nguoiNhan:o.kh.nn||"",sdt:o.kh.sdt||"",loaiXe:o.kh.xe||""},
       company:{tenXuong:o.ct.ten||"",sdtXuong:o.ct.sdt||"",emailXuong:o.ct.mail||"",diaChiXuong:o.ct.dc||"",logo:o.ct.logo||""},
