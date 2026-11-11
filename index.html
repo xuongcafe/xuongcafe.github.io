@@ -344,6 +344,22 @@ html.runam-standalone .customer-quick-list > button {
   </script>
 
   <script src="./vendor/html2pdf.bundle-0.10.1.min.js"></script>
-  <script src="./app.js?v=102"></script>
+  <script>
+  (function(){
+    function loadFromCache(){
+      var s=document.createElement("script"); s.src="./app.js"; document.body.appendChild(s);
+    }
+    if(!navigator.onLine){ loadFromCache(); return; }
+    fetch("./app.js",{cache:"no-cache"}).then(function(r){
+      if(!r.ok) throw new Error("fetch app.js failed");
+      return r.text();
+    }).then(function(code){
+      var blob=new Blob([code],{type:"text/javascript"});
+      var s=document.createElement("script"); s.src=URL.createObjectURL(blob);
+      s.onerror=function(){ loadFromCache(); };
+      document.body.appendChild(s);
+    }).catch(function(){ loadFromCache(); });
+  })();
+</script>
 </body>
 </html>
