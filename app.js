@@ -7,14 +7,14 @@ const PGH_VIRTUAL_BASE="https://xem-phieu.netlify.app/"; // Link ao - doi ten na
 const pghShortenUrl=async url=>{
   try{
     if(!url||url.length<40) return url;
-    const res=await fetch("https://api.shrtco.de/v2/shorten?url="+encodeURIComponent(url));
+    const res=await fetch("https://cleanuri.com/api/v1/shorten",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"url="+encodeURIComponent(url)});
     if(!res.ok) return url;
     const j=await res.json();
-    const short=j&&j.result&&j.result.full_short_link;
-    if(short&&/^https:\/\/shrtco\.de\/[A-Za-z0-9]+$/.test(short)) return short;
+    const short=j&&j.result_url;
+    if(short&&/^https:\/\/cleanuri\.com\/[A-Za-z0-9]+$/.test(short)) return short;
     return url;
   }catch(e){ return url; }
-}
+};
 const pghEncodeTicketVirtualLink=ticket=>{
   try{
     const dataOnly=pghEncodeTicketDataOnly(ticket); // RUNAM1:base64
