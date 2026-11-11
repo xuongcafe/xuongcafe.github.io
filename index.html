@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <base href="/" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#3C2415" />
+  <meta name="application-name" content="RUNAM" />
+  <meta name="apple-mobile-web-app-title" content="RUNAM" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="64x64" href="./icons/favicon.png" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+  <title>RUNAM | Phiếu giao hàng</title>
+  <script src="./vendor/react.production.min.js"></script>
+  <script src="./vendor/react-dom.production.min.js"></script>
+  <script src="./offline-storage.js"></script>
+  <script src="./vendor/jsQR.js"></script>
+  <script src="./vendor/qrcode.js"></script>
+  <script src="./vendor/qrcode_UTF8.js"></script>
+  <script>
+    const runamIsStandalone = navigator.standalone === true || !!(window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+    const runamIsIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+    if (runamIsStandalone) document.documentElement.classList.add("runam-standalone");
+    if (runamIsIOS) document.documentElement.classList.add("runam-ios");
+    const desktopLocalMode = new URLSearchParams(location.search).get("local") === "1";
+    if (!desktopLocalMode && "serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then(registration => registration.update()).catch(() => {}));
+    }
+  </script>
+  <style>
+    @keyframes blink-online {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.25; }
+    }
+    .dot-online { animation: blink-online 1s ease-in-out infinite; }
+    :root {
+      --main: #3C2415;
+      --beige: #FFFBEB;
+      --bg: #FDFBF7;
+      --safe-top: env(safe-area-inset-top, 0px);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: var(--bg);
+      color: #1F2937;
+      min-height: 100vh;
+      padding-top: var(--safe-top);
+      -webkit-font-smoothing: antialiased;
+    }
+    .font-display { font-family: "Playfair Display", serif; }
+    button { cursor: pointer; font-family: inherit; border: none; background: none; }
+    input, select, textarea { font-family: inherit; }
+    .no-print { }
+    @media print { #root { zoom: 1 !important; } }
+    .runam-logo { border: none !important; background: transparent !important; }
+
+    @media screen and (max-width: 640px) and (orientation: portrait) {
+      .mobile-company-header { flex-direction: column !important; align-items: stretch !important; gap: 10px !important; }
+      .mobile-company-logo { align-self: center; }
+      .mobile-company-info { width: 100% !important; }
+      .mobile-company-contact { flex-direction: column !important; gap: 6px !important; }
+      .mobile-company-contact input { width: 100% !important; min-width: 0 !important; box-sizing: border-box; }
+      .mobile-company-status { width: 100% !important; align-items: stretch !important; }
+      .mobile-company-status > div:first-child { text-align: left !important; }
+      .mobile-company-status > div:last-child { justify-content: flex-start !important; flex-wrap: wrap; }
+      .customer-heading-row {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        align-items: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+      }
+      .customer-heading-row > div:first-child {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        min-width: 0 !important;
+      }
+      .customer-heading-row .pgh-add-customer {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+        justify-self: end !important;
+        white-space: nowrap !important;
+      }
+      .customer-heading-row .customer-quick-list {
+        display: grid !important;
+        grid-column: 1 / -1 !important;
+        grid-row: 2 !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+        flex: none !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        align-items: stretch !important;
+      }
+      .customer-heading-row .customer-quick-list > button {
+        display: flex !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        justify-content: center !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        padding-left: 3px !important;
+        padding-right: 3px !important;
+      }
+    }
+    @media screen and (max-width: 360px) and (orientation: portrait) {
+      .customer-heading-row .customer-quick-list { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    }
+    @media screen and (orientation: landscape) and (max-height: 600px) {
+      .customer-heading-row {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        align-items: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+      }
+      .customer-heading-row > div:first-child { grid-column: 1 !important; grid-row: 1 !important; min-width: 0 !important; }
+      .customer-heading-row .pgh-add-customer { grid-column: 2 !important; grid-row: 1 !important; justify-self: end !important; white-space: nowrap !important; }
+      .customer-heading-row .customer-quick-list {
+        display: grid !important;
+        grid-column: 1 / -1 !important;
+        grid-row: 2 !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+        flex: none !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        align-items: stretch !important;
+      }
+      .customer-heading-row .customer-quick-list > button { display: flex !important; width: 100% !important; min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important; justify-content: center !important; text-align: center !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; padding-left: 3px !important; padding-right: 3px !important; }
+    }
+
+    .pgh-print-header { flex-wrap: wrap !important; align-items: flex-start !important; gap: 10px !important; }
+    .pgh-print-company { width: 100% !important; max-width: 100% !important; flex: 0 0 100% !important; }
+    .pgh-print-title {
+      width: 100% !important;
+      max-width: 100% !important;
+      flex: 0 0 100% !important;
+      margin: 4px 0 0 !important;
+      text-align: center !important;
+      white-space: normal !important;
+      line-height: 1.2 !important;
+    }
+
+    @media screen and (max-width: 640px) {
+      .print-card {
+        width: calc(100vw - 32px) !important;
+        max-width: calc(100vw - 32px) !important;
+        box-sizing: border-box !important;
+        margin: 44px 16px 0 !important;
+        padding: 14px !important;
+      }
+      .pgh-print-header { flex-wrap: wrap !important; align-items: flex-start !important; gap: 10px !important; }
+      .pgh-print-company { width: 100% !important; max-width: 100% !important; flex: 0 0 100% !important; }
+      .pgh-print-title {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 0 0 100% !important;
+        margin: 4px 0 0 !important;
+        text-align: center !important;
+        white-space: normal !important;
+        line-height: 1.2 !important;
+      }
+    }
+
+    @media print {
+      body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body * { visibility: hidden !important; }
+      .print-card, .print-card * { visibility: visible !important; }
+      .no-print { display: none !important; }
+      .print-card { position: absolute !important; left: 50% !important; top: 0 !important; transform: translateX(-50%) scale(var(--pgh-print-scale, 1)) !important; transform-origin: top center !important; box-shadow: none !important; border: none !important; margin: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+    }
+    /* Date placeholder */
+    .nsx-date-wrap { position: relative; display: inline-block; }
+    .nsx-date-wrap input[type=date] {
+      width: 108px; height: 36px; border-radius: 8px;
+      border: 1px solid #d1d5db; background: #fffefe;
+      padding: 0 8px; font-size: 13px; outline: none;
+    }
+    .nsx-date-wrap input[type=date]:focus {
+      border-color: var(--main); box-shadow: 0 0 0 2px rgba(60,36,21,.12);
+    }
+    .nsx-date-wrap input[type=date].empty-date { color: transparent; }
+    .nsx-date-wrap .nsx-date-placeholder {
+      position: absolute; left: 10px; top: 50%;
+      transform: translateY(-50%); font-size: 12px; color: #9ca3af; pointer-events: none;
+    }
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #111; color: #fff; padding: 10px 20px; border-radius: 9999px;
+      font-size: 13px; font-weight: 600; z-index: 200; box-shadow: 0 8px 30px rgba(0,0,0,.25);
+      animation: fadeIn .2s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+  </style>
+<style id="runam-mobile-customer-grid-v14">
+@media screen and (max-width:700px), screen and (max-device-width:700px), screen and (display-mode:standalone) {
+  html body .customer-code-suggestions {
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-auto-flow:row!important;
+    width:100%!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+  html body .customer-code-suggestions > .customer-code-suggestion {
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:100%!important;
+    grid-column:auto!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+  }
+  html body .customer-code-suggestion-code,
+  html body .customer-code-suggestion-name {
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    text-align:left!important;
+    overflow-wrap:anywhere!important;
+    box-sizing:border-box!important;
+  }
+  html body .customer-code-suggestion-name {
+    white-space:normal!important;
+    overflow:hidden!important;
+    text-overflow:clip!important;
+    line-height:1.2!important;
+  }
+}
+html.runam-ios .customer-code-suggestions,
+html.runam-standalone .customer-code-suggestions {
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-auto-flow:row!important;
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+html.runam-ios .customer-code-suggestions > .customer-code-suggestion,
+html.runam-standalone .customer-code-suggestions > .customer-code-suggestion {
+  width:auto!important;
+  min-width:0!important;
+  max-width:100%!important;
+  grid-column:auto!important;
+  box-sizing:border-box!important;
+}
+</style>
+
+<style id="runam-iphone-customer-grid-v16">
+html.runam-ios .customer-heading-row,
+html.runam-standalone .customer-heading-row {
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto !important;
+  align-items:center !important;
+  gap:8px !important;
+  width:100% !important;
+}
+html.runam-ios .customer-quick-list,
+html.runam-standalone .customer-quick-list {
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  grid-column:1 / -1 !important;
+  grid-row:2 !important;
+  gap:6px !important;
+  flex:none !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  align-items:stretch !important;
+}
+html.runam-ios .customer-quick-list > button,
+html.runam-standalone .customer-quick-list > button {
+  display:flex !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+  justify-content:center !important;
+  text-align:center !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  padding-left:3px !important;
+  padding-right:3px !important;
+}
+@media screen and (max-width:360px) and (orientation:portrait) {
+  html.runam-ios .customer-quick-list, html.runam-standalone .customer-quick-list { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+}
+@media screen and (orientation:landscape) and (max-height:600px) {
+  html.runam-ios .customer-quick-list, html.runam-standalone .customer-quick-list { grid-template-columns:repeat(5,minmax(0,1fr)) !important; }
+}
+</style>
+</head>
+<body>
+  <div id="root">
+    <div id="boot-screen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#FDFBF7;font-family:system-ui,sans-serif;text-align:center">
+      <div>
+        <div style="font-size:22px;font-weight:700;color:#3C2415;margin-bottom:8px">RUNAM</div>
+        <div style="font-size:14px;color:#6b7280;margin-bottom:16px">Phiếu giao hàng • Lưu trữ cục bộ</div>
+        <div style="width:40px;height:40px;border:3px solid #E7DCC0;border-top-color:#3C2415;border-radius:50%;margin:0 auto;animation:spin 0.8s linear infinite"></div>
+        <div id="boot-err" style="display:none;margin-top:20px;padding:14px;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;color:#991b1b;font-size:13px;line-height:1.5;text-align:left"></div>
+      </div>
+    </div>
+  </div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}
+    @media screen and (max-width: 640px), screen and (max-device-width: 640px), screen and (display-mode: standalone) {
+      .customer-code-suggestions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px!important;padding:6px!important;max-height:min(38vh,240px)!important;overflow-x:hidden!important;overflow-y:auto!important;box-sizing:border-box!important}.customer-code-suggestion{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:3px!important;min-width:0!important;min-height:52px!important;padding:8px 10px!important;border:1px solid #e7dcc0!important;border-radius:10px!important;background:#fffcf3!important;text-align:left!important;box-sizing:border-box!important}.customer-code-suggestion-code{display:block!important;max-width:100%;font-size:12px!important;font-weight:700!important;line-height:1.2!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.customer-code-suggestion-name{display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;width:100%!important;min-width:0!important;margin-left:0!important;overflow:hidden!important;overflow-wrap:anywhere!important;white-space:normal!important;text-overflow:clip!important;font-size:11px!important;line-height:1.2!important;color:#6b7280!important}.customer-code-suggestion-empty{grid-column:1/-1!important;padding:10px!important;text-align:center!important}
+    }
+    html.runam-standalone .customer-code-suggestions,html.runam-ios .customer-code-suggestions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;padding:6px!important;max-height:min(38vh,240px)!important;overflow-x:hidden!important;overflow-y:auto!important;box-sizing:border-box!important}
+    html.runam-standalone .customer-code-suggestion,html.runam-ios .customer-code-suggestion{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:3px!important;min-width:0!important;min-height:52px!important;padding:8px 10px!important;border:1px solid #e7dcc0!important;border-radius:10px!important;background:#fffcf3!important;text-align:left!important;box-sizing:border-box!important}
+    html.runam-standalone .customer-code-suggestion-code,html.runam-ios .customer-code-suggestion-code{display:block!important;max-width:100%!important;font-size:12px!important;font-weight:700!important;line-height:1.2!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+    html.runam-standalone .customer-code-suggestion-name,html.runam-ios .customer-code-suggestion-name{display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;width:100%!important;min-width:0!important;margin-left:0!important;overflow:hidden!important;overflow-wrap:anywhere!important;white-space:normal!important;text-overflow:clip!important;font-size:11px!important;line-height:1.2!important;color:#6b7280!important}
+    html.runam-standalone .customer-code-suggestion-empty,html.runam-ios .customer-code-suggestion-empty{grid-column:1/-1!important;padding:10px!important;text-align:center!important}
+  </style>
+  <script>
+    // Thư viện frontend được phục vụ cục bộ; báo lỗi tải ứng dụng nếu có tài nguyên thiếu.
+    window.addEventListener("load", function () {
+      setTimeout(function () {
+        if (typeof React === "undefined" || typeof ReactDOM === "undefined" || typeof Babel === "undefined") {
+          var el = document.getElementById("boot-err");
+          if (!el) return;
+          el.style.display = "block";
+          el.innerHTML = "<b>Không khởi động được RUNAM.</b><br/>• Đóng rồi mở lại ứng dụng<br/>• Nếu vừa cập nhật, hãy chạy lại tệp EXE mới nhất.";
+        }
+      }, 4000);
+    });
+  </script>
+
+  <script src="./vendor/html2pdf.bundle-0.10.1.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

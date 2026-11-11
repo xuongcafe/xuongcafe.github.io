@@ -1,0 +1,15 @@
+{
+  "name": "RUNAM | Phiếu giao hàng iPhone",
+  "short_name": "Phiếu giao hàng",
+  "lang": "vi",
+  "description": "Phiếu giao hàng RUNAM - Việt, English, Italiano",
+  "start_url": "./?mobile=1",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FDFBF7",
+  "theme_color": "#3C2415",
+  "icons": [
+    { "src": "./icons/favicon.png", "sizes": "64x64", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}

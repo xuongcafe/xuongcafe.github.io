@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#3C2415"><title>Thiết lập Admin | RUNAM</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:#FDFBF7;color:#1f2937;font:15px system-ui,sans-serif}.card{width:min(100%,460px);background:white;border:1px solid #E7DCC0;border-radius:18px;padding:28px;box-shadow:0 18px 48px #3c24151a}.brand{color:#3C2415;font-weight:800;letter-spacing:.12em}.help{color:#6b7280;line-height:1.55;font-size:13px;margin:12px 0 20px}label{display:block;font-size:12px;font-weight:700;margin:12px 0 6px}input{width:100%;height:44px;border:1px solid #d1d5db;border-radius:10px;padding:0 12px;font:inherit}button{margin-top:20px;width:100%;height:46px;border:0;border-radius:999px;background:#3C2415;color:white;font-weight:700;font:inherit;cursor:pointer}.msg{margin-top:14px;font-size:13px;line-height:1.5}.error{color:#b91c1c}.success{color:#166534}.hidden{display:none!important}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="brand">RUNAM</div>
+    <h1 style="font-size:21px;margin:8px 0 0">Khởi tạo tài khoản Admin</h1>
+    <p class="help">Chỉ dùng một lần khi cơ sở dữ liệu trên máy này chưa có tài khoản. Tài khoản Admin đầu tiên bảo vệ dữ liệu cục bộ của ứng dụng.</p>
+    <div id="status" class="msg"></div>
+    <form id="form">
+      <label for="username">Tên tài khoản Admin</label><input id="username" value="admin" required minlength="3" maxlength="32" pattern="[a-zA-Z0-9._-]+">
+      <label for="password">Mật khẩu (ít nhất 12 ký tự)</label><input id="password" type="password" autocomplete="new-password" required minlength="12">
+      <label for="confirm">Nhập lại mật khẩu</label><input id="confirm" type="password" autocomplete="new-password" required minlength="12">
+      <button type="submit">Tạo Admin đầu tiên</button>
+    </form>
+  </main>
+  <script>
+    const statusEl=document.getElementById('status');
+    fetch('/api/setup/status',{cache:'no-store'}).then(r=>r.json()).then(s=>{if(!s.setupRequired){document.getElementById('form').classList.add('hidden');statusEl.textContent='Thiết lập Admin đã hoàn tất. Hãy đăng nhập từ trang ứng dụng.';}else if(!s.canInitialize){document.getElementById('form').classList.add('hidden');statusEl.className='msg error';statusEl.textContent='Hãy mở bước khởi tạo trong ứng dụng desktop trên máy này.';}}).catch(()=>{statusEl.className='msg error';statusEl.textContent='Không kết nối được cơ sở dữ liệu cục bộ.';});
+    document.getElementById('form').addEventListener('submit',async e=>{
+      e.preventDefault();statusEl.className='msg';statusEl.textContent='Đang tạo tài khoản…';
+      const password=document.getElementById('password').value;
+      if(password!==document.getElementById('confirm').value){statusEl.className='msg error';statusEl.textContent='Mật khẩu xác nhận không khớp.';return;}
+      try{const response=await fetch('/api/setup/admin',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json','X-PGH-Request':'1'},body:JSON.stringify({username:document.getElementById('username').value,password})});const result=await response.json();if(!response.ok)throw new Error(result.error||'Không tạo được Admin.');statusEl.className='msg success';statusEl.textContent='Đã tạo tài khoản Admin. Chuyển về đăng nhập…';setTimeout(()=>location.href='/?local=1',1200);}catch(err){statusEl.className='msg error';statusEl.textContent=err.message;}
+    });
+  </script>
+</body>
+</html>
