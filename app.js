@@ -20,36 +20,26 @@ const PGH_KNOWN_FAST=new Set(["TCPH0121","TCPH0109","TCPH0122","TCPH0110","TCPH0
 const pghEncodeTicketVirtualLink=ticket=>{
   try{
     const prods=Array.isArray(ticket.products)?ticket.products:[];
-    const esc=v=>String(v==null?"":v).replace(/\|/g," ").replace(/,/g," ").trim();
     const strip=s=>String(s==null?"":s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D");
-    const plain=prods.map(p=>{const q=p&&typeof p==="object"?p:{}; let mf=q.maFast||""; try{ if(!mf && typeof pghFindProduct==="function" && typeof catalog!=="undefined" && catalog){ const found=pghFindProduct(catalog,q.maKho); if(found&&found.maFast) mf=found.maFast; } }catch(e){} let du=q.donVi||""; try{ if(!du && typeof pghFindProduct==="function" && typeof catalog!=="undefined" && catalog){ const fd=pghFindProduct(catalog,q.maKho); if(fd&&fd.donVi) du=fd.donVi; } }catch(e){} if(!du){ const qc2=String(q.quyCach||""); du=/[0-9]/.test(qc2)?"gói":"đơn vị"; } return ""+"::"+esc(mf)+"::"+strip(q.tenSP||"")+"::"+esc(q.quyCach||"")+"::"+esc(q.ngaySX||"")+"::"+(Number(q.soGoi)||0)+"::"+strip(du);}).join(",");
-    let sParam="";
-    try{
-      const sObj={};
-      if(typeof theme!=="undefined"&&theme){
-        if(theme.main&&theme.main!=="#3C2415") sObj.m=theme.main;
-        if(theme.boxBg&&theme.boxBg!=="#FFFFFF") sObj.b=theme.boxBg;
-        if(theme.beige&&theme.beige!=="#FFFBEB") sObj.be=theme.beige;
-      }
-      if(typeof labels!=="undefined"&&labels){
-        const diff={};
-        const def={mainTitle:"THÔNG TIN CHI TIẾT SẢN PHẨM",maFast:"Mã Fast",maKho:"Mã Kho",tenSP:"Tên SP",quyCach:"Quy Cách",ngaySX:"Ngày SX",soGoi:"Số Gói",soKg:"Số Kg",tong:"Tổng",tongSoLuong:"Tổng số lượng",tongKhoiLuong:"Tổng khối lượng"};
-        for(const k in def){ if(labels[k]&&labels[k]!==def[k]) diff[k]=labels[k]; }
-        if(Object.keys(diff).length) sObj.l=diff;
-      }
-      if(typeof hide!=="undefined"&&hide){
-        const hDiff={};
-        const hideKeys=["CotSTTIn","MaKhoIn","MaFastIn","TenSPIn","QuyCachIn","NgaySXIn","SoGoiIn","SoKgIn","TongIn"];
-        hideKeys.forEach(k=>{ if(typeof hide[k]==="boolean"&&hide[k]===false) hDiff[k]=0; });
-        if(Object.keys(hDiff).length) sObj.h=hDiff;
-      }
-      if(Object.keys(sObj).length){
-        const js=JSON.stringify(sObj);
-        const b64=btoa(unescape(encodeURIComponent(js))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-        sParam="&s="+b64;
-      }
-    }catch(e){}
-    return PGH_VIRTUAL_BASE+"?t="+encodeURIComponent(plain)+sParam;
+    const calcKg=p=>{ const q=String(p.quyCach||"").toLowerCase(); const m=q.match(/([0-9]+(?:\.[0-9]+)?)/); const u=m?Number(m[1]):0; if(!u) return Number(p.soKg)||0; if(q.indexOf("kg")>=0) return (Number(p.soGoi)||0)*u; if(q.indexOf("gr")>=0||q.indexOf("g")>=0) return (Number(p.soGoi)||0)*u/1000; return (Number(p.soGoi)||0)*u; };
+    const unitOf=p=>{ let du=p.donVi||""; try{ if(!du && typeof pghFindProduct==="function" && typeof catalog!=="undefined" && catalog){ const fd=pghFindProduct(catalog,p.maKho); if(fd&&fd.donVi) du=fd.donVi; } }catch(e){} if(du) return strip(du); const qc2=String(p.quyCach||""); return /[0-9]/.test(qc2)?"goi":"don vi"; };
+    let tongKg=0; const byUnit={};
+    const lines=prods.map(p=>{
+      const q=p&&typeof p==="object"?p:{};
+      const ten=strip(q.tenSP||"");
+      const qc=strip(q.quyCach||"");
+      const u=unitOf(q);
+      const qty=Number(q.soGoi)||0;
+      const kg=calcKg(q);
+      tongKg+=kg;
+      byUnit[u]=(byUnit[u]||0)+qty;
+      const namePart=qc?ten+" ("+qc+")":ten;
+      return namePart+" - "+qty+" "+u+" - "+(Math.round(kg*100)/100)+" kg";
+    });
+    const totalQty=Object.keys(byUnit).map(k=>byUnit[k]+" "+k).join(" + ");
+    if(lines.length) lines.push("Tong: "+(totalQty||"")+" - "+(Math.round(tongKg*100)/100)+" kg");
+    else lines.push("Khong co san pham");
+    return lines.join("\n");
   }catch(e){return "";}
 };
 const pghEncodeTicketDataOnly=ticket=>{
@@ -150,7 +140,7 @@ const buildRunamTicketPrintPage=(ticket,showInPrint,esc,mobilePrint,printSetting
   const customer=ticket.customer&&typeof ticket.customer==="object"?ticket.customer:{};
   const products=Array.isArray(ticket.products)?ticket.products:[]; const mainColor=(typeof theme!=="undefined"&&theme.main)||"#3C2415"; const boxBg=(typeof theme!=="undefined"&&(theme.boxBg||theme.beige))||"#FFFFFF"; const fmtDMY=(v)=>{ const s=String(v||"").trim(); const m=s.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/); if(m) return String(m[3]).padStart(2,"0")+"/"+String(m[2]).padStart(2,"0")+"/"+m[1]; return s; }; const S=(k,fb)=>{ const base=printSettings?printSettings.size(k,fb):fb; const fs=Number(typeof theme!=="undefined"&&theme.fontScale)||1; return Math.round(base*fs*10)/10; }; const L=(k,fb)=>{ try{ if(printSettings) return printSettings.label(k,fb); if(typeof labels!=="undefined"&&labels&&labels[k]&&labels[k]!==fb) return labels[k]; }catch(e){} return fb; }; const company=ticket.company&&typeof ticket.company==="object"?ticket.company:{}; const companyName=company.tenXuong||"RUNAM"; const logoPx=printSettings&&printSettings.logoSize?Number(printSettings.logoSize):40; const logoMarkup=showInPrint("LogoIn")?(company.logo?`<img class="company-logo" style="width:${logoPx}px;height:${logoPx}px;object-fit:contain;flex:0 0 ${logoPx}px" src="${esc(company.logo)}" alt="Logo">`:`<div class="logo-placeholder" style="width:${logoPx}px;height:${logoPx}px;display:flex;align-items:center;justify-content:center;flex:0 0 ${logoPx}px">LOGO</div>`):""; const companyMeta=[showInPrint("SDTIn")&&company.sdtXuong?esc(company.sdtXuong):"",showInPrint("EmailIn")&&company.emailXuong?esc(company.emailXuong):"",showInPrint("DiaChiIn")&&company.diaChiXuong?esc(company.diaChiXuong):""].filter(Boolean).join(" · "); const companyHeader=(logoMarkup||showInPrint("TenXuongIn")||companyMeta)?`<div style="display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:6px"><div style="flex:0 0 auto">${logoMarkup}</div><div style="flex:0 1 auto;text-align:center">${showInPrint("TenXuongIn")?`<div class="company" style="font-size:${S("printCompany",15)}px;font-weight:700;line-height:1.15">${esc(companyName)}</div>`:""}${companyMeta?`<div class="company-meta" style="font-size:${S("printCompanyMeta",10)}px;line-height:1.25">${companyMeta}</div>`:""}</div></div>`:"";
   const qrText=(window.__pghShortCache&&window.__pghShortCache[ticket.soPhieu])||pghEncodeTicketVirtualLink(ticket);
-  const qrMm=Math.max(38, printSettings&&printSettings.qrSize?Number(printSettings.qrSize):38); const qrMarkup=qrText?`<div style="flex:0 0 ${qrMm}mm;width:${qrMm}mm;height:${qrMm}mm;min-width:${qrMm}mm;max-width:${qrMm}mm;overflow:hidden;flex-shrink:0">${pghQrSvg(qrText).replace(/<svg/, '<svg style="width:100%!important;height:100%!important;display:block" ')}</div>`:"";
+  const qrMm=(()=>{const v=printSettings&&printSettings.qrSize?Number(printSettings.qrSize):(typeof theme!=='undefined'&&theme&&theme.printQrSize?Number(theme.printQrSize):38);return Math.min(60,Math.max(18, isNaN(v)?38:v));})(); const qrMarkup=qrText?`<div style="flex:0 0 ${qrMm}mm;width:${qrMm}mm;height:${qrMm}mm;min-width:${qrMm}mm;max-width:${qrMm}mm;overflow:hidden;flex-shrink:0">${pghQrSvg(qrText).replace(/<svg/, '<svg style="width:100%!important;height:100%!important;display:block" ')}</div>`:"";
   const calcKg2=(p)=>{
     const q=String(p.quyCach||"").toLowerCase();
     const m=q.match(/([0-9]+(?:\.[0-9]+)?)/);
