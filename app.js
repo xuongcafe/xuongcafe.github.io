@@ -23,7 +23,34 @@ const pghEncodeTicketVirtualLink=ticket=>{
     const prodStr=prods.map(p=>{const q=p&&typeof p==="object"?p:{}; let mf=q.maFast||""; try{ if(!mf && typeof pghFindProduct==="function" && typeof catalog!=="undefined" && catalog){ const found=pghFindProduct(catalog,q.maKho); if(found&&found.maFast) mf=found.maFast; } }catch(e){} let du=q.donVi||""; try{ if(!du && typeof pghFindProduct==="function" && typeof catalog!=="undefined" && catalog){ const fd=pghFindProduct(catalog,q.maKho); if(fd&&fd.donVi) du=fd.donVi; } }catch(e){} if(!du){ const qc2=String(q.quyCach||""); du=/[0-9]/.test(qc2)?"gói":"đơn vị"; } return esc(q.maKho||"")+"::"+esc(mf)+"::"+esc(q.tenSP||"")+"::"+esc(q.quyCach||"")+"::"+esc(q.ngaySX||"")+"::"+(Number(q.soGoi)||0)+"::"+esc(du);}).join(",");
     const parts=[esc(ticket.soPhieu||""),esc(ticket.soPhieuXuat||""),esc(ticket.soPO||""),esc(ticket.ngayGiao||""),esc(c.maKhach||""),esc(c.tenDaiLy||""),esc(c.diaChi||""),esc(c.nguoiNhan||""),esc(c.sdt||c.sdtNhan||""),esc(c.loaiXe||ticket.loaiXe||""),prodStr,String(ticket.totalKg||"")];
     const plain=parts.join("|");
-    return PGH_VIRTUAL_BASE+"?t="+encodeURIComponent(plain);
+    // Nhét Cài đặt vô QR để phiếu quét tự theo: chỉ nhét cái đã đổi so với mặc định để QR gọn
+    let sParam="";
+    try{
+      const sObj={};
+      if(typeof theme!=="undefined"&&theme){
+        if(theme.main&&theme.main!=="#3C2415") sObj.m=theme.main;
+        if(theme.boxBg&&theme.boxBg!=="#FFFFFF") sObj.b=theme.boxBg;
+        if(theme.beige&&theme.beige!=="#FFFBEB") sObj.be=theme.beige;
+      }
+      if(typeof labels!=="undefined"&&labels){
+        const diff={};
+        const def={mainTitle:"PHIẾU GIAO HÀNG",thongTinPhieu:"THÔNG TIN PHIẾU",thongTinKhach:"THÔNG TIN KHÁCH HÀNG",soPhieu:"SỐ PHIẾU",soPhieuXuat:"SỐ PHIẾU XUẤT",soPO:"SỐ PO",ngayGiao:"NGÀY GIAO",maFast:"Mã Fast",maKho:"Mã Kho",tenSP:"Tên SP",quyCach:"Quy Cách",ngaySX:"Ngày SX",soGoi:"Số Gói",soKg:"Số Kg",tong:"Tổng",nguoiGiao:"Người Giao",nguoiNhanFooter:"Người Nhận"};
+        for(const k in def){ if(labels[k]&&labels[k]!==def[k]) diff[k]=labels[k]; }
+        if(Object.keys(diff).length) sObj.l=diff;
+      }
+      if(typeof hide!=="undefined"&&hide){
+        const hDiff={};
+        const hideKeys=["SoPhieuIn","SoPhieuXuatIn","SoPOIn","NgayGiaoIn","MaKhachIn","TenDaiLyIn","DiaChiKhachIn","NguoiNhanIn","SDTNhanIn","LoaiXeIn","CotSTTIn","MaKhoIn","MaFastIn","TenSPIn","QuyCachIn","NgaySXIn","SoGoiIn","SoKgIn","TongIn","QRIn"];
+        hideKeys.forEach(k=>{ if(typeof hide[k]==="boolean"&&hide[k]===false) hDiff[k]=0; });
+        if(Object.keys(hDiff).length) sObj.h=hDiff;
+      }
+      if(Object.keys(sObj).length){
+        const js=JSON.stringify(sObj);
+        const b64=btoa(unescape(encodeURIComponent(js))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+        sParam="&s="+b64;
+      }
+    }catch(e){}
+    return PGH_VIRTUAL_BASE+"?t="+encodeURIComponent(plain)+sParam;
   }catch(e){return "";}
 };
 const pghEncodeTicketDataOnly=ticket=>{
