@@ -20,18 +20,9 @@ const PGH_KNOWN_FAST=new Set(["TCPH0121","TCPH0109","TCPH0122","TCPH0110","TCPH0
 const pghEncodeTicketVirtualLink=ticket=>{
   try{
     const prods=Array.isArray(ticket.products)?ticket.products:[];
-    const getMf=q=>{let mf=q.maFast||""; try{ if(!mf && typeof pghFindProduct==="function" && typeof catalog!=="undefined" && catalog){ const found=pghFindProduct(catalog,q.maKho); if(found&&found.maFast) mf=found.maFast; } }catch(e){} return mf;};
-    const allKnown=prods.every(p=>{const q=p&&typeof p==="object"?p:{}; return PGH_KNOWN_FAST.has(getMf(q));});
-    let plain="", prefix="?c=";
-    if(allKnown){
-      plain=prods.map(p=>{const q=p&&typeof p==="object"?p:{}; const mf=getMf(q); const ddmmyy=String(q.ngaySX||"").replace(/[^0-9]/g,"").slice(0,8); let dd=""; if(ddmmyy.length===8){ dd=ddmmyy.slice(0,2)+ddmmyy.slice(2,4)+ddmmyy.slice(6,8); } else dd=ddmmyy; return String(mf).replace(/[^A-Za-z0-9]/g,"")+":"+(Number(q.soGoi)||0)+":"+(dd||"");}).join(",");
-    } else {
-      // Sản phẩm mới chưa có trong bảng tra -> nhét tên đầy đủ để không mất tên
-      const esc=v=>String(v==null?"":v).replace(/\|/g," ").replace(/,/g," ").trim();
-      const strip=s=>String(s==null?"":s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D");
-      plain=prods.map(p=>{const q=p&&typeof p==="object"?p:{}; let mf=getMf(q); let du=q.donVi||""; try{ if(!du && typeof pghFindProduct==="function" && typeof catalog!=="undefined" && catalog){ const fd=pghFindProduct(catalog,q.maKho); if(fd&&fd.donVi) du=fd.donVi; } }catch(e){} if(!du){ const qc2=String(q.quyCach||""); du=/[0-9]/.test(qc2)?"gói":"đơn vị"; } return ""+"::"+esc(mf)+"::"+strip(q.tenSP||"")+"::"+esc(q.quyCach||"")+"::"+esc(q.ngaySX||"")+"::"+(Number(q.soGoi)||0)+"::"+strip(du);}).join(",");
-      prefix="?t=";
-    }
+    const esc=v=>String(v==null?"":v).replace(/\|/g," ").replace(/,/g," ").trim();
+    const strip=s=>String(s==null?"":s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D");
+    const plain=prods.map(p=>{const q=p&&typeof p==="object"?p:{}; let mf=q.maFast||""; try{ if(!mf && typeof pghFindProduct==="function" && typeof catalog!=="undefined" && catalog){ const found=pghFindProduct(catalog,q.maKho); if(found&&found.maFast) mf=found.maFast; } }catch(e){} let du=q.donVi||""; try{ if(!du && typeof pghFindProduct==="function" && typeof catalog!=="undefined" && catalog){ const fd=pghFindProduct(catalog,q.maKho); if(fd&&fd.donVi) du=fd.donVi; } }catch(e){} if(!du){ const qc2=String(q.quyCach||""); du=/[0-9]/.test(qc2)?"gói":"đơn vị"; } return ""+"::"+esc(mf)+"::"+strip(q.tenSP||"")+"::"+esc(q.quyCach||"")+"::"+esc(q.ngaySX||"")+"::"+(Number(q.soGoi)||0)+"::"+strip(du);}).join(",");
     let sParam="";
     try{
       const sObj={};
@@ -58,7 +49,7 @@ const pghEncodeTicketVirtualLink=ticket=>{
         sParam="&s="+b64;
       }
     }catch(e){}
-    return PGH_VIRTUAL_BASE+prefix+encodeURIComponent(plain)+sParam;
+    return PGH_VIRTUAL_BASE+"?t="+encodeURIComponent(plain)+sParam;
   }catch(e){return "";}
 };
 const pghEncodeTicketDataOnly=ticket=>{
