@@ -60,7 +60,7 @@ const pghEncodeTicketVirtualLink=ticket=>{
     }catch(e){}
     // Viewer QR moi: mang du lieu day du de trang xem phieu doc duoc ca thong tin phieu/khach/san pham.
     // Van giu nguyen QR den-tren-trang-trang; chi thay noi dung payload, khong thay cach ve QR.
-    const fullPayload=pghEncodeTicketDataOnly(ticket);
+    const fullPayload=pghEncodeTicketDataOnly(ticket,{hide,labels,titleSizes,theme});
     if(fullPayload){
       const encoded=fullPayload.slice(PGH_QR_PREFIX.length);
       return PGH_VIRTUAL_BASE+"?d="+encodeURIComponent(encoded);
@@ -68,7 +68,7 @@ const pghEncodeTicketVirtualLink=ticket=>{
     return PGH_VIRTUAL_BASE+prefix+encodeURIComponent(plain)+sParam;
   }catch(e){return "";}
 };
-const pghEncodeTicketDataOnly=ticket=>{
+const pghEncodeTicketDataOnly=(ticket,displaySettings={})=>{
   try{
     const c=ticket&&ticket.customer&&typeof ticket.customer==="object"?ticket.customer:{};
     const co=ticket&&ticket.company&&typeof ticket.company==="object"?ticket.company:{};
@@ -76,11 +76,12 @@ const pghEncodeTicketDataOnly=ticket=>{
     // KHONG nhét logo vô QR - logo là base64 dài cả trăm ngàn ký tự, làm QR quá dài không quét được. Viewer sẽ hiện chữ LOGO thay.
     const obj=[1,ticket.soPhieu||"",ticket.soPhieuXuat||"",ticket.soPO||"",ticket.ngayGiao||"",
       [c.maKhach||"",c.tenDaiLy||"",c.diaChi||"",c.nguoiNhan||"",c.sdt||c.sdtNhan||"",c.loaiXe||ticket.loaiXe||""],
-      [], // Bo cong ty - chi lay tu PHIEU GIAO HANG tro xuong, viewer tu ghi san cong ty
+      [co.tenXuong||"",co.sdtXuong||"",co.emailXuong||"",co.diaChiXuong||""], // Khong dua logo base64 vao QR de tranh ma qua lon
       prods.map(p=>{const q=p&&typeof p==="object"?p:{};return [q.maKho||"",q.maFast||"",q.tenSP||"",q.quyCach||"",q.ngaySX||"",Number(q.soGoi)||0,String(q.donVi||""),Number(q.soKg)||0];}),
       ticket.totalKg||0,
       String(ticket.nguoiGiao||ticket.deliveryPerson||""),
-      String(ticket.nguoiNhanHang||c.nguoiNhan||"")];
+      String(ticket.nguoiNhanHang||c.nguoiNhan||""),
+      {h:displaySettings.hide&&typeof displaySettings.hide==="object"?displaySettings.hide:{},l:displaySettings.labels&&typeof displaySettings.labels==="object"?displaySettings.labels:{},z:displaySettings.titleSizes&&typeof displaySettings.titleSizes==="object"?displaySettings.titleSizes:{},t:displaySettings.theme&&typeof displaySettings.theme==="object"?{main:displaySettings.theme.main,beige:displaySettings.theme.beige,boxBg:displaySettings.theme.boxBg,text:displaySettings.theme.text,font:displaySettings.theme.font,fontWeight:displaySettings.theme.fontWeight}: {}}];
     const json=JSON.stringify(obj);
     let bin="";for(let i=0;i<json.length;i++)bin+=String.fromCharCode(json.charCodeAt(i)&255);
     // base64 without unicode issues - keep ascii only via encodeURIComponent
@@ -94,7 +95,7 @@ const pghDecodeTicketDataOnly=text=>{
     if(!s.startsWith(PGH_QR_PREFIX))return null;
     let _s=s.slice(PGH_QR_PREFIX.length).replace(/-/g,"+").replace(/_/g,"/"); while(_s.length%4) _s+="="; const json=decodeURIComponent(escape(atob(_s)));
     const o=JSON.parse(json);
-    if(Array.isArray(o)){ if(o[0]!==1) return null; const kh=o[5]||[]; const ct=o[6]||[]; return {soPhieu:o[1]||"",soPhieuXuat:o[2]||"",soPO:o[3]||"",ngayGiao:o[4]||"",customer:{maKhach:kh[0]||"",tenDaiLy:kh[1]||"",diaChi:kh[2]||"",nguoiNhan:kh[3]||"",sdt:kh[4]||"",loaiXe:kh[5]||""},company:{tenXuong:ct[0]||"",sdtXuong:ct[1]||"",emailXuong:ct[2]||"",diaChiXuong:ct[3]||"",logo:""},products:(o[7]||[]).map(r=>({maKho:r[0]||"",maFast:r[1]||"",tenSP:r[2]||"",quyCach:r[3]||"",ngaySX:r[4]||"",soGoi:r[5]||0,donVi:r[6]||"",soKg:r[7]||0})),totalKg:o[8]||0,nguoiGiao:o[9]||"",nguoiNhanHang:o[10]||kh[3]||""}; }
+    if(Array.isArray(o)){ if(o[0]!==1) return null; const kh=o[5]||[]; const ct=o[6]||[]; return {soPhieu:o[1]||"",soPhieuXuat:o[2]||"",soPO:o[3]||"",ngayGiao:o[4]||"",customer:{maKhach:kh[0]||"",tenDaiLy:kh[1]||"",diaChi:kh[2]||"",nguoiNhan:kh[3]||"",sdt:kh[4]||"",loaiXe:kh[5]||""},company:{tenXuong:ct[0]||"",sdtXuong:ct[1]||"",emailXuong:ct[2]||"",diaChiXuong:ct[3]||"",logo:""},products:(o[7]||[]).map(r=>({maKho:r[0]||"",maFast:r[1]||"",tenSP:r[2]||"",quyCach:r[3]||"",ngaySX:r[4]||"",soGoi:r[5]||0,donVi:r[6]||"",soKg:r[7]||0})),totalKg:o[8]||0,nguoiGiao:o[9]||"",nguoiNhanHang:o[10]||kh[3]||"",displaySettings:o[11]&&typeof o[11]==="object"?o[11]:{}}; }
     if(!o||o.v!==1)return null;
     return {soPhieu:o.soPhieu||"",soPhieuXuat:o.soPhieuXuat||"",soPO:o.soPO||"",ngayGiao:o.ngayGiao||"",
       customer:{maKhach:o.kh.ma||"",tenDaiLy:o.kh.ten||"",diaChi:o.kh.dc||"",nguoiNhan:o.kh.nn||"",sdt:o.kh.sdt||"",loaiXe:o.kh.xe||""},
@@ -103,16 +104,26 @@ const pghDecodeTicketDataOnly=text=>{
   }catch(e){return null;}
 };
 const pghBuildPublicTicketHtml=ticket=>{
-  // Dung dung layout cua phieu that: header logo + cong ty, meta 2 cot, hop khach hang, bang, tong, chu ky - khong hien domain/link
-  const esc=pghPrintEscape;
-  const c=ticket.customer||{};const co=ticket.company||{};const prods=Array.isArray(ticket.products)?ticket.products:[];
-  const logo=co.logo?`<img src="${esc(co.logo)}" style="width:40px;height:40px;object-fit:contain;flex:0 0 40px">`:`<div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex:0 0 40px;font-size:10px;color:#999">LOGO</div>`;
-  const meta=[co.sdtXuong||"",co.emailXuong||"",co.diaChiXuong||""].filter(Boolean).join(" · ");
-  const kh=[c.tenDaiLy?`<div><b>• ${esc(c.tenDaiLy)}</b></div>`:"",c.maKhach?`<div>${esc(c.maKhach)}</div>`:"",c.diaChi?`<div>${esc(c.diaChi)}</div>`:"",c.nguoiNhan?`<div><b>• ${esc(c.nguoiNhan)}</b></div>`:"<div>-</div>",c.sdt?`<div>${esc(c.sdt)}</div>`:"",c.loaiXe?`<div>${esc(c.loaiXe)}</div>`:""].join("");
-  const rows=prods.map((p,i)=>`<tr><td>${i+1}</td><td>${esc(p.maFast||"")}</td><td>${p.maKho?`<strong>${esc(p.maKho)}</strong><br>`:""}${esc(p.tenSP||"")}</td><td>${esc(p.quyCach||"-")}</td><td>${esc(p.ngaySX?fmtDate(p.ngaySX):"-")}</td><td>${esc(fmtKg(toFiniteNumber(p.soGoi)))} ${esc(rowQuantityUnit(p))}</td><td class="num">${esc(fmtKg(calcRowKg(p)))} kg</td></tr>`).join("")||`<tr><td colspan="7">Không có sản phẩm</td></tr>`;
-  const tongKg=totalTicketKg(prods,ticket.totalKg);
-  const tongSL=prods.reduce((s,p)=>s+toFiniteNumber(p.soGoi),0);
-  return `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Phiếu giao hàng ${esc(ticket.soPhieu||"")}</title><style>@page{size:210mm 297mm;margin:5mm}*{box-sizing:border-box}body{margin:0;background:#fff;color:#1f2937;font-family:Inter,Arial,sans-serif}.wrap{width:199mm;max-width:100%;margin:0 auto;padding:3mm;font-size:13px;line-height:1.3}header{display:flex;flex-wrap:wrap;gap:4px 8px;border-bottom:1px solid #3C2415;padding-bottom:6px;margin-bottom:8px}.brand{display:flex;gap:4px;width:100%}.cinfo{flex:1;text-align:center}.cname{font-size:15px;font-weight:bold}.cmeta{font-size:10px}h1{font-size:18px;width:100%;text-align:center;margin:4px 0 0;color:#3C2415}.meta{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;padding:6px 0;font-size:11px}.customer{margin:5px 0;padding:7px;background:#fffaf0;border:1px solid #e7dcc0;border-radius:4px}.customer h2{font-size:13px;margin:0 0 4px;color:#3c2415}table{width:100%;border-collapse:collapse;margin-top:6px;font-size:11px}th,td{border:1px solid #d1d5db;padding:5px;vertical-align:top}th{background:#f5efe3;text-align:left}.num{text-align:right;white-space:nowrap}.total{text-align:right;font-weight:bold;margin-top:7px;font-size:13px}.sign{display:grid;grid-template-columns:1fr 1fr;margin-top:8px;font-weight:bold}.sign div:last-child{text-align:right}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div class="wrap"><header><div class="brand">${logo}<div class="cinfo"><div class="cname">${esc(co.tenXuong||"RUNAM")}</div>${meta?`<div class="cmeta">${esc(meta)}</div>`:""}</div></div><h1>PHIẾU GIAO HÀNG</h1></header><div class="meta"><div><b>Số phiếu:</b> ${esc(ticket.soPhieu||"-")}</div><div><b>Số phiếu xuất:</b> ${esc(ticket.soPhieuXuat||"-")}</div><div><b>Số PO:</b> ${esc(ticket.soPO||"-")}</div><div><b>Ngày giao:</b> ${esc(ticket.ngayGiao?fmtDate(ticket.ngayGiao):"-")}</div></div><section class="customer"><h2>THÔNG TIN KHÁCH HÀNG</h2>${kh}</section><table><thead><tr><th>STT</th><th>Mã Fast</th><th>Sản phẩm</th><th>Quy cách</th><th>NSX</th><th>Số lượng</th><th>Kg</th></tr></thead><tbody>${rows}</tbody></table><div class="total"><div>${esc(typeof labels!=="undefined"&&labels.tongSoLuong?labels.tongSoLuong:"Tổng số lượng")}: ${esc(fmtKg(tongSL))}</div><div>${esc(typeof labels!=="undefined"&&labels.tongKhoiLuong?labels.tongKhoiLuong:"Tổng khối lượng")}: ${esc(fmtKg(tongKg))} kg</div><div class="gross-weight">Gross Weight ______________kg</div></div><div class="sign" style="padding:0 14mm"><div style="text-align:center">Người giao hàng</div><div style="text-align:center">Người nhận hàng</div></div></div></body></html>`;
+  const esc=pghPrintEscape,c=ticket.customer||{},co=ticket.company||{},prods=Array.isArray(ticket.products)?ticket.products:[];
+  const ds=ticket.displaySettings||{},h=ds.h||{},l=ds.l||{},z=ds.z||{},th=ds.t||{};
+  const show=k=>h[k]!==false,label=(k,d)=>l[k]||d;
+  const size=(k,d)=>{const n=Number(z[k]);return Number.isFinite(n)&&n>=8&&n<=32?n:d;};
+  const companyMeta=[show("SDTIn")&&co.sdtXuong,show("EmailIn")&&co.emailXuong,show("DiaChiIn")&&co.diaChiXuong].filter(Boolean).join(" · ");
+  const company=(show("TenXuongIn")&&co.tenXuong)||companyMeta?`<div style="text-align:center;margin-bottom:8px">${show("TenXuongIn")&&co.tenXuong?`<b>${esc(co.tenXuong)}</b><br>`:""}${companyMeta?`<small>${esc(companyMeta)}</small>`:""}</div>`:"";
+  const info=[ ["SoPhieuIn","soPhieu",label("soPhieu","Số phiếu"),ticket.soPhieu], ["SoPhieuXuatIn","soPhieuXuat",label("soPhieuXuat","Số phiếu xuất"),ticket.soPhieuXuat], ["SoPOIn","soPO",label("soPO","Số PO"),ticket.soPO], ["NgayGiaoIn","ngayGiao",label("ngayGiao","Ngày giao"),ticket.ngayGiao?fmtDate(ticket.ngayGiao):""] ].filter(x=>show(x[0])&&x[3]);
+  const infoHtml=info.map(x=>`<div><b>${esc(x[2])}:</b> ${esc(x[3])}</div>`).join("");
+  const customerFields=[["MaKhachIn","maKhach",label("maKhach","Mã khách"),c.maKhach],["TenDaiLyIn","tenDaiLy",label("tenDaiLy","Tên đại lý"),c.tenDaiLy],["DiaChiKhachIn","diaChi",label("diaChi","Địa chỉ"),c.diaChi],["NguoiNhanIn","nguoiNhan",label("nguoiNhan","Người nhận"),c.nguoiNhan],["SDTNhanIn","sdtNhan",label("sdtNhan","SĐT người nhận"),c.sdt],["LoaiXeIn","loaiXe",label("loaiXe","Loại xe"),c.loaiXe]].filter(x=>show(x[0])&&x[3]);
+  const customerHtml=customerFields.map(x=>`<div>${esc(x[2])}: ${esc(x[3])}</div>`).join("");
+  const cols=[["CotSTTIn","stt",label("stt","STT"),p=>p.i+1],["MaKhoIn","maKho",label("maKho","Mã kho"),p=>p.maKho||""],["MaFastIn","maFast",label("maFast","Mã Fast"),p=>p.maFast||""],["TenSPIn","tenSP",label("tenSP","Sản phẩm"),p=>p.tenSP||""],["QuyCachIn","quyCach",label("quyCach","Quy cách"),p=>p.quyCach||""],["NgaySXIn","ngaySX",label("ngaySX","NSX"),p=>p.ngaySX?fmtDate(p.ngaySX):""],["SoGoiIn","soGoi",label("soGoi","Số lượng"),p=>`${fmtKg(toFiniteNumber(p.soGoi))} ${rowQuantityUnit(p)}`],["SoKgIn","soKg",label("soKg","Số kg"),p=>`${fmtKg(calcRowKg(p))} kg`]].filter(x=>show(x[0]));
+  const head=cols.map(x=>`<th>${esc(x[2])}</th>`).join("");
+  const rows=prods.map((p,i)=>`<tr>${cols.map(x=>`<td>${esc(x[3]({...p,i}))}</td>`).join("")}</tr>`).join("")||`<tr><td colspan="${Math.max(cols.length,1)}">Không có sản phẩm</td></tr>`;
+  const tongKg=totalTicketKg(prods,ticket.totalKg),tongSL=prods.reduce((sum,p)=>sum+toFiniteNumber(p.soGoi),0);
+  const totals=show("TongIn")?`<div style="text-align:right;font-weight:bold;margin-top:8px">${esc(label("tongSoLuong","Tổng số lượng"))}: ${esc(fmtKg(tongSL))}<br>${esc(label("tongKhoiLuong","Tổng khối lượng"))}: ${esc(fmtKg(tongKg))} kg</div>`:"";
+  const signatures=show("ChuKyIn")?`<div style="display:flex;justify-content:space-around;margin-top:28px;text-align:center">${show("NguoiGiaoKyIn")?`<div>${esc(label("nguoiGiao","Người giao"))}</div>`:""}${show("NguoiNhanKyIn")?`<div>${esc(label("nguoiNhanFooter","Người nhận"))}</div>`:""}</div>`:"";
+  const main=label("mainTitle","PHIẾU GIAO HÀNG"),section=label("chiTietSP","CHI TIẾT SẢN PHẨM");
+  const panel=(title,content)=>content?`<section style="border:1px solid #ddd;padding:8px;margin:8px 0"><b>${esc(title)}</b><div style="margin-top:5px">${content}</div></section>`:"";
+  const themeMain=/^#[0-9a-f]{6}$/i.test(th.main||"")?th.main:"#3C2415",themeBeige=/^#[0-9a-f]{6}$/i.test(th.beige||"")?th.beige:"#FFFBEB";
+  return `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(main)} ${esc(ticket.soPhieu||"")}</title><style>@page{size:A4;margin:8mm}*{box-sizing:border-box}body{margin:0;padding:10px;font-family:Arial,sans-serif;color:#222}.wrap{max-width:190mm;margin:auto;font-size:13px}h1{text-align:center;color:${themeMain};font-size:${size("mainTitle",20)}px;margin:8px 0 14px}h2{text-align:center;color:${themeMain};font-size:${size("chiTietSP",13)}px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #bbb;padding:6px;text-align:left;vertical-align:top}th{background:${themeBeige}}@media print{body{padding:0}}</style></head><body><main class="wrap">${company}<h1>${esc(main)}</h1>${panel(label("thongTinPhieu","THÔNG TIN PHIẾU"),infoHtml)}${panel(label("thongTinKhach","THÔNG TIN KHÁCH HÀNG"),customerHtml)}<h2>${esc(section)}</h2><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>${totals}${signatures}</main></body></html>`;
 };
 const getRunamBatchPrintSettings=()=>{
   const clamp=(value,min,max,fallback)=>{const number=Number(value);return Number.isFinite(number)?Math.min(max,Math.max(min,number)):fallback;};
