@@ -4,13 +4,14 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'RUNAM-Desktop-2.6.6-Mobile-Features-Update-Source.zip'
+      - 'RUNAM-Desktop-2.6.6-Mobile-Features-Update-Source-CI.zip'
+      - '.github/workflows/build-runam-desktop.yml'
 
 permissions:
   contents: read
 
 env:
-  SOURCE_ARCHIVE: RUNAM-Desktop-2.6.6-Mobile-Features-Update-Source.zip
+  SOURCE_ARCHIVE: RUNAM-Desktop-2.6.6-Mobile-Features-Update-Source-CI.zip
 
 jobs:
   build-windows:
@@ -55,7 +56,7 @@ jobs:
       - name: Upload Setup.exe
         uses: actions/upload-artifact@v4
         with:
-          name: RUNAM-Setup-2.6.6-Win7-Win10-x64
+          name: RUNAM-Setup-2.6.6-Win7-x64
           path: ${{ runner.temp }}/runam-source/RUNAM-Desktop-Mobile-Win7-Win10/dist/*.exe
           if-no-files-found: error
           retention-days: 30
