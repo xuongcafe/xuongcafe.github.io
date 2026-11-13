@@ -146,7 +146,7 @@ const pghDecodeTicketDataOnly=text=>{
   try{
     const s=String(text||"").trim();
     if(!s.startsWith(PGH_QR_PREFIX))return null;
-    const packed=s.slice(PGH_QR_PREFIX.length);const json=packed.startsWith("Z1")?pghLzwDecompressUtf8(packed):(()=>{let _s=packed.replace(/-/g,"+").replace(/_/g,"/");while(_s.length%4)_s+="=";return decodeURIComponent(escape(atob(_s));})();
+    const packed=s.slice(PGH_QR_PREFIX.length);const json=packed.startsWith("Z1")?pghLzwDecompressUtf8(packed):(()=>{let _s=packed.replace(/-/g,"+").replace(/_/g,"/");while(_s.length%4)_s+="=";return decodeURIComponent(escape(atob(_s)));})();
     const o=JSON.parse(json);
     if(Array.isArray(o)){ if(o[0]!==1) return null; const kh=o[5]||[]; const ct=o[6]||[]; return {soPhieu:o[1]||"",soPhieuXuat:o[2]||"",soPO:o[3]||"",ngayGiao:o[4]||"",customer:{maKhach:kh[0]||"",tenDaiLy:kh[1]||"",diaChi:kh[2]||"",nguoiNhan:kh[3]||"",sdt:kh[4]||"",loaiXe:kh[5]||""},company:{tenXuong:ct[0]||"",sdtXuong:ct[1]||"",emailXuong:ct[2]||"",diaChiXuong:ct[3]||"",logo:""},products:(o[7]||[]).map(r=>({maKho:r[0]||"",maFast:r[1]||"",tenSP:r[2]||"",quyCach:r[3]||"",ngaySX:r[4]||"",soGoi:r[5]||0,donVi:r[6]||"",soKg:r[7]||0})),totalKg:o[8]||0,nguoiGiao:o[9]||"",nguoiNhanHang:o[10]||kh[3]||"",displaySettings:o[11]&&typeof o[11]==="object"?o[11]:{}}; }
     if(!o||o.v!==1)return null;
