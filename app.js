@@ -19,47 +19,26 @@ const pghStripVN=s=>String(s==null?"":s).normalize("NFD").replace(/[\u0300-\u036
 const PGH_KNOWN_FAST=new Set(["TCPH0121","TCPH0109","TCPH0122","TCPH0110","TCPH0009","TCPH0111","TCPH0004","TCPH0010","TCPH0011","TCPH0123","TCPH0112","TCPH0008","TCPH0127","TCPH0013","TCPH0113","TCPH0005","TCPH0014","TCPH0015","TCPH0124","TCPH0114","TCPH0012","TCPH0115","TCPH0018","TCPH0116","TCPH0006","TCPH0019","TCPH0020","TCPH0125","TCPH0117","TCPH0017","TCPH0118","TCPH0024","TCPH0119","TCPH0007","TCPH0025","TCPH0026","TCPH0126","TCPH0120","TCPH0023","TCPH0107","TCPH0105","NBBI0033"]);
 const pghEncodeTicketVirtualLink=ticket=>{
   try{
-    const prods=Array.isArray(ticket.products)?ticket.products:[];
-    const getMf=q=>{let mf=q.maFast||""; try{ if(!mf && typeof pghFindProduct==="function" && typeof catalog!=="undefined" && catalog){ const found=pghFindProduct(catalog,q.maKho); if(found&&found.maFast) mf=found.maFast; } }catch(e){} return mf;};
-    const allKnown=prods.every(p=>{const q=p&&typeof p==="object"?p:{}; return PGH_KNOWN_FAST.has(getMf(q));});
-    let plain="", prefix="?c=";
-    if(allKnown){
-      plain=prods.map(p=>{const q=p&&typeof p==="object"?p:{}; const mf=getMf(q); const ddmmyy=String(q.ngaySX||"").replace(/[^0-9]/g,"").slice(0,8); let dd=""; if(ddmmyy.length===8){ dd=ddmmyy.slice(0,2)+ddmmyy.slice(2,4)+ddmmyy.slice(6,8); } else dd=ddmmyy; return String(mf).replace(/[^A-Za-z0-9]/g,"")+":"+(Number(q.soGoi)||0)+":"+(dd||"");}).join(",");
-    } else {
-      // Sản phẩm mới chưa có trong bảng tra -> nhét tên đầy đủ để không mất tên
-      const esc=v=>String(v==null?"":v).replace(/\|/g," ").replace(/,/g," ").trim();
-      const strip=s=>String(s==null?"":s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D");
-      plain=prods.map(p=>{const q=p&&typeof p==="object"?p:{}; let mf=getMf(q); let du=q.donVi||""; try{ if(!du && typeof pghFindProduct==="function" && typeof catalog!=="undefined" && catalog){ const fd=pghFindProduct(catalog,q.maKho); if(fd&&fd.donVi) du=fd.donVi; } }catch(e){} if(!du){ const qc2=String(q.quyCach||""); du=/[0-9]/.test(qc2)?"gói":"đơn vị"; } return ""+"::"+esc(mf)+"::"+strip(q.tenSP||"")+"::"+esc(q.quyCach||"")+"::"+esc(q.ngaySX||"")+"::"+(Number(q.soGoi)||0)+"::"+strip(du);}).join(",");
-      prefix="?t=";
-    }
-    let sParam="";
-    try{
-      const sObj={};
-      if(typeof theme!=="undefined"&&theme){
-        if(theme.main&&theme.main!=="#3C2415") sObj.m=theme.main;
-        if(theme.boxBg&&theme.boxBg!=="#FFFFFF") sObj.b=theme.boxBg;
-        if(theme.beige&&theme.beige!=="#FFFBEB") sObj.be=theme.beige;
-      }
-      if(typeof labels!=="undefined"&&labels){
-        const diff={};
-        const def={mainTitle:"THÔNG TIN CHI TIẾT SẢN PHẨM",maFast:"Mã Fast",maKho:"Mã Kho",tenSP:"Tên SP",quyCach:"Quy Cách",ngaySX:"Ngày SX",soGoi:"Số Gói",soKg:"Số Kg",tong:"Tổng",tongSoLuong:"Tổng số lượng",tongKhoiLuong:"Tổng khối lượng"};
-        for(const k in def){ if(labels[k]&&labels[k]!==def[k]) diff[k]=labels[k]; }
-        if(Object.keys(diff).length) sObj.l=diff;
-      }
-      if(typeof hide!=="undefined"&&hide){
-        const hDiff={};
-        const hideKeys=["CotSTTIn","MaKhoIn","MaFastIn","TenSPIn","QuyCachIn","NgaySXIn","SoGoiIn","SoKgIn","TongIn"];
-        hideKeys.forEach(k=>{ if(typeof hide[k]==="boolean"&&hide[k]===false) hDiff[k]=0; });
-        if(Object.keys(hDiff).length) sObj.h=hDiff;
-      }
-      if(Object.keys(sObj).length){
-        const js=JSON.stringify(sObj);
-        const b64=btoa(unescape(encodeURIComponent(js))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-        sParam="&s="+b64;
-      }
-    }catch(e){}
-    return PGH_VIRTUAL_BASE+prefix+encodeURIComponent(plain)+sParam;
-  }catch(e){return "";}
+    const products=Array.isArray(ticket?.products)?ticket.products:[];
+    const lines=["THÔNG TIN SẢN PHẨM",""];
+    const totals={};
+    products.forEach((p,index)=>{
+      const q=p&&typeof p==="object"?p:{};
+      const unit=String(q.donVi||rowQuantityUnit(q)||"đơn vị").trim();
+      const qty=toFiniteNumber(q.soGoi);
+      totals[unit]=(totals[unit]||0)+qty;
+      lines.push((index+1)+". "+String(q.maFast||"").trim());
+      lines.push("Tên sản phẩm: "+String(q.tenSP||"").trim());
+      lines.push("Quy cách: "+String(q.quyCach||"").trim());
+      lines.push("Ngày sản xuất: "+String(q.ngaySX||"-").trim());
+      lines.push("Số lượng: "+fmtKg(qty)+" "+unit);
+      lines.push("Số kg: "+fmtKg(toFiniteNumber(q.soKg))+" kg");
+      lines.push("");
+    });
+    lines.push("TỔNG SỐ LƯỢNG: "+Object.entries(totals).map(([unit,qty])=>fmtKg(qty)+" "+unit).join(" + "));
+    lines.push("TỔNG KHỐI LƯỢNG: "+fmtKg(toFiniteNumber(ticket?.totalKg)||totalTicketKg(products,ticket?.totalKg))+" kg");
+    return lines.join("\\n").trim();
+  }catch(error){console.warn("RUNAM plain-text QR failed",error);return "";}
 };
 const pghEncodeTicketDataOnly=ticket=>{
   try{
