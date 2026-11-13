@@ -1,0 +1,62 @@
+name: Build RUNAM Desktop Setup
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'RUNAM-Desktop-2.6.6-Mobile-Features-Update-Source.zip'
+      - '.github/workflows/build-runam-desktop.yml'
+
+permissions:
+  contents: read
+
+env:
+  SOURCE_ARCHIVE: RUNAM-Desktop-2.6.6-Mobile-Features-Update-Source.zip
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check source archive
+        shell: pwsh
+        run: |
+          if (!(Test-Path $env:SOURCE_ARCHIVE)) {
+            throw "Missing $env:SOURCE_ARCHIVE in repository root. Upload the updated source ZIP, then run this workflow again."
+          }
+
+      - name: Extract source
+        shell: pwsh
+        run: |
+          Expand-Archive -LiteralPath $env:SOURCE_ARCHIVE -DestinationPath "$env:RUNNER_TEMP\runam-source" -Force
+          $root = Join-Path "$env:RUNNER_TEMP\runam-source" 'RUNAM-Desktop-Mobile-Win7-Win10'
+          if (!(Test-Path (Join-Path $root 'package.json'))) { throw 'package.json not found in source archive.' }
+          "RUNAM_SOURCE_DIR=$root" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16.20.2'
+
+      - name: Install dependencies and rebuild native modules
+        shell: pwsh
+        run: |
+          Set-Location $env:RUNAM_SOURCE_DIR
+          npm install --no-audit --no-fund
+          npx electron-builder install-app-deps
+
+      - name: Build Windows x64 installer
+        shell: pwsh
+        run: |
+          Set-Location $env:RUNAM_SOURCE_DIR
+          npm run dist:win
+
+      - name: Upload Setup.exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: RUNAM-Setup-2.6.6-Win7-Win10-x64
+          path: ${{ runner.temp }}/runam-source/RUNAM-Desktop-Mobile-Win7-Win10/dist/*.exe
+          if-no-files-found: error
+          retention-days: 30
