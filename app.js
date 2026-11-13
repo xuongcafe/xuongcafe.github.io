@@ -36,7 +36,7 @@ const pghEncodeTicketVirtualLink=ticket=>{
       const kg=fmtKg(toFiniteNumber(q.soKg));
       lines.push(name+": "+qty+" "+unit+"/"+kg+"kg");
     });
-    return lines.join("\\n");
+    return lines.join("\n");
   }catch(error){console.warn("RUNAM compact QR failed",error);return "";}
 };
 const pghEncodeTicketDataOnly=ticket=>{
