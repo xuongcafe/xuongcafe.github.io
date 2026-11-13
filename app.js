@@ -74,14 +74,23 @@ const pghEncodeTicketDataOnly=(ticket,displaySettings={})=>{
     const co=ticket&&ticket.company&&typeof ticket.company==="object"?ticket.company:{};
     const prods=Array.isArray(ticket.products)?ticket.products:[];
     // KHONG nhét logo vô QR - logo là base64 dài cả trăm ngàn ký tự, làm QR quá dài không quét được. Viewer sẽ hiện chữ LOGO thay.
+    // Chi dua cac tuy chinh KHAC mac dinh vao QR de tranh payload qua lon lam mat ma QR khi in.
+    const diff=(source,defaults)=>{const out={};if(source&&typeof source==="object")Object.keys(source).forEach(k=>{if(source[k]!==undefined&&JSON.stringify(source[k])!==JSON.stringify(defaults&&defaults[k]))out[k]=source[k];});return out;};
+    const compactSettings={
+      h:diff(displaySettings.hide,typeof DEFAULT_HIDE!=="undefined"?DEFAULT_HIDE:{}),
+      l:diff(displaySettings.labels,typeof DEFAULT_LABELS!=="undefined"?DEFAULT_LABELS:{}),
+      z:diff(displaySettings.titleSizes,typeof DEFAULT_TITLE_SIZES!=="undefined"?DEFAULT_TITLE_SIZES:{}),
+      t:diff(displaySettings.theme,typeof DEFAULT_THEME!=="undefined"?DEFAULT_THEME:{})
+    };
+    Object.keys(compactSettings).forEach(k=>{if(!Object.keys(compactSettings[k]).length)delete compactSettings[k];});
     const obj=[1,ticket.soPhieu||"",ticket.soPhieuXuat||"",ticket.soPO||"",ticket.ngayGiao||"",
       [c.maKhach||"",c.tenDaiLy||"",c.diaChi||"",c.nguoiNhan||"",c.sdt||c.sdtNhan||"",c.loaiXe||ticket.loaiXe||""],
-      [co.tenXuong||"",co.sdtXuong||"",co.emailXuong||"",co.diaChiXuong||""], // Khong dua logo base64 vao QR de tranh ma qua lon
+      [co.tenXuong||"",co.sdtXuong||"",co.emailXuong||"",co.diaChiXuong||""],
       prods.map(p=>{const q=p&&typeof p==="object"?p:{};return [q.maKho||"",q.maFast||"",q.tenSP||"",q.quyCach||"",q.ngaySX||"",Number(q.soGoi)||0,String(q.donVi||""),Number(q.soKg)||0];}),
       ticket.totalKg||0,
       String(ticket.nguoiGiao||ticket.deliveryPerson||""),
       String(ticket.nguoiNhanHang||c.nguoiNhan||""),
-      {h:displaySettings.hide&&typeof displaySettings.hide==="object"?displaySettings.hide:{},l:displaySettings.labels&&typeof displaySettings.labels==="object"?displaySettings.labels:{},z:displaySettings.titleSizes&&typeof displaySettings.titleSizes==="object"?displaySettings.titleSizes:{},t:displaySettings.theme&&typeof displaySettings.theme==="object"?{main:displaySettings.theme.main,beige:displaySettings.theme.beige,boxBg:displaySettings.theme.boxBg,text:displaySettings.theme.text,font:displaySettings.theme.font,fontWeight:displaySettings.theme.fontWeight}: {}}];
+      compactSettings];
     const json=JSON.stringify(obj);
     let bin="";for(let i=0;i<json.length;i++)bin+=String.fromCharCode(json.charCodeAt(i)&255);
     // base64 without unicode issues - keep ascii only via encodeURIComponent
