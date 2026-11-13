@@ -1,4 +1,4 @@
-const CACHE_NAME = "pgh-static-v2-6-2-print-ios-v30";
+const CACHE_NAME = "pgh-static-v2-6-2-print-ios-v31";
 const APP_ROOT_URL = new URL("./", self.location.href);
 const APP_ROOT_PATH = APP_ROOT_URL.pathname;
 const APP_INDEX_PATH = new URL("index.html", APP_ROOT_URL).pathname;
@@ -34,11 +34,19 @@ self.addEventListener("fetch", event => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== self.location.origin || !url.pathname.startsWith(APP_ROOT_PATH) || url.pathname.includes("/api/")) return;
-  if (request.mode === "navigate") {
-    event.respondWith(fetch(request).then(response => {
-      if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(APP_INDEX_PATH, response.clone()));
+  // Luôn kiểm tra bản mới trên mạng cho HTML và app.js; nếu mất mạng thì dùng bản đã lưu.
+  const isAppScript = url.pathname === new URL("./app.js", APP_ROOT_URL).pathname;
+  if (request.mode === "navigate" || isAppScript) {
+    const cacheKey = isAppScript ? new URL("./app.js", APP_ROOT_URL).href : APP_INDEX_PATH;
+    event.respondWith(fetch(request, { cache: "no-cache" }).then(response => {
+      if (response.ok && response.type === "basic") {
+        caches.open(CACHE_NAME).then(cache => cache.put(cacheKey, response.clone()));
+      }
       return response;
-    }).catch(async () => (await caches.match(APP_INDEX_PATH)) || (await caches.match(APP_ROOT_PATH))));
+    }).catch(async () => {
+      const cached = await caches.match(cacheKey, { ignoreSearch: true });
+      return cached || (request.mode === "navigate" ? await caches.match(APP_ROOT_PATH) : Response.error());
+    }));
     return;
   }
   event.respondWith(caches.match(request).then(cached => {
