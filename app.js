@@ -20,25 +20,24 @@ const PGH_KNOWN_FAST=new Set(["TCPH0121","TCPH0109","TCPH0122","TCPH0110","TCPH0
 const pghEncodeTicketVirtualLink=ticket=>{
   try{
     const products=Array.isArray(ticket?.products)?ticket.products:[];
-    const lines=["THÔNG TIN SẢN PHẨM",""];
-    const totals={};
-    products.forEach((p,index)=>{
+    const lines=[];
+    products.forEach(p=>{
       const q=p&&typeof p==="object"?p:{};
-      const unit=String(q.donVi||rowQuantityUnit(q)||"đơn vị").trim();
-      const qty=toFiniteNumber(q.soGoi);
-      totals[unit]=(totals[unit]||0)+qty;
-      lines.push((index+1)+". "+String(q.maFast||"").trim());
-      lines.push("Tên sản phẩm: "+String(q.tenSP||"").trim());
-      lines.push("Quy cách: "+String(q.quyCach||"").trim());
-      lines.push("Ngày sản xuất: "+String(q.ngaySX||"-").trim());
-      lines.push("Số lượng: "+fmtKg(qty)+" "+unit);
-      lines.push("Số kg: "+fmtKg(toFiniteNumber(q.soKg))+" kg");
-      lines.push("");
+      let unit=String(q.donVi||"").trim();
+      try{
+        if(!unit&&typeof pghFindProduct==="function"&&typeof catalog!=="undefined"&&catalog){
+          const found=pghFindProduct(catalog,q.maKho);
+          if(found?.donVi)unit=String(found.donVi).trim();
+        }
+      }catch(e){}
+      if(!unit)unit="gói";
+      const name=String(q.tenSP||"").trim();
+      const qty=fmtKg(toFiniteNumber(q.soGoi));
+      const kg=fmtKg(toFiniteNumber(q.soKg));
+      lines.push(name+" | "+qty+" "+unit+" | "+kg+" kg");
     });
-    lines.push("TỔNG SỐ LƯỢNG: "+Object.entries(totals).map(([unit,qty])=>fmtKg(qty)+" "+unit).join(" + "));
-    lines.push("TỔNG KHỐI LƯỢNG: "+fmtKg(toFiniteNumber(ticket?.totalKg)||totalTicketKg(products,ticket?.totalKg))+" kg");
-    return lines.join("\\n").trim();
-  }catch(error){console.warn("RUNAM plain-text QR failed",error);return "";}
+    return lines.join("\\n");
+  }catch(error){console.warn("RUNAM compact QR failed",error);return "";}
 };
 const pghEncodeTicketDataOnly=ticket=>{
   try{
