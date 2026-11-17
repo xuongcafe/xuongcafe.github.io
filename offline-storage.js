@@ -9,7 +9,7 @@
     if (dbPromise) return dbPromise;
     dbPromise = new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
-      request.onupgradeneeded = () => {
+      request.onupgradeneeded = event => {
         const db = request.result;
         let tickets;
         if (!db.objectStoreNames.contains("tickets")) tickets = db.createObjectStore("tickets", { keyPath: "key" });
@@ -35,7 +35,7 @@
         if (!history.indexNames.contains("ownerTicketNo")) history.createIndex("ownerTicketNo", ["owner", "ticketNo"], { unique: false });
         // Rebuild the stored month key for existing Vietnamese DMY dates.
         // Earlier versions accidentally used the day as the month.
-        if (request.oldVersion < 3) {
+        if (event.oldVersion < 3) {
           const cursorRequest = history.openCursor();
           cursorRequest.onsuccess = event => {
             const cursor = event.target.result;
