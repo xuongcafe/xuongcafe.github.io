@@ -2,7 +2,7 @@
   "use strict";
 
   const DB_NAME = "pgh-offline-v2";
-  const DB_VERSION = 2;
+  const DB_VERSION = 3;
   let dbPromise;
 
   function openDb() {
@@ -33,6 +33,22 @@
         if (!history.indexNames.contains("ownerCreated")) history.createIndex("ownerCreated", ["owner", "createdAt", "ticketId"], { unique: false });
         if (!history.indexNames.contains("ownerMonthCreated")) history.createIndex("ownerMonthCreated", ["owner", "month", "createdAt", "ticketId"], { unique: false });
         if (!history.indexNames.contains("ownerTicketNo")) history.createIndex("ownerTicketNo", ["owner", "ticketNo"], { unique: false });
+        // Rebuild the stored month key for existing Vietnamese DMY dates.
+        // Earlier versions accidentally used the day as the month.
+        if (request.oldVersion < 3) {
+          const cursorRequest = history.openCursor();
+          cursorRequest.onsuccess = event => {
+            const cursor = event.target.result;
+            if (!cursor) return;
+            const entry = cursor.value;
+            const correctedMonth = ticketMonth(entry.ticket || {});
+            if (entry.month !== correctedMonth) {
+              entry.month = correctedMonth;
+              cursor.update(entry);
+            }
+            cursor.continue();
+          };
+        }
 
         if (!db.objectStoreNames.contains("sequences")) {
           const sequences = db.createObjectStore("sequences", { keyPath: "key" });
@@ -87,8 +103,12 @@
     const raw = String(ticket?.ngayGiao || "").trim();
     const iso = raw.match(/^(\d{4})-(\d{2})/);
     if (iso) return `${iso[1]}-${iso[2]}`;
-    const dmy = raw.match(/^\d{1,2}[/. -](\d{1,2})[/. -](\d{4})$/);
-    if (dmy) return `${dmy[3]}-${String(dmy[1]).padStart(2, "0")}`;
+    const dmy = raw.match(/^(\d{1,2})[/. -](\d{1,2})[/. -](\d{4})(?:[ T].*)?$/);
+    if (dmy) {
+      const month = Number(dmy[2]);
+      const day = Number(dmy[1]);
+      if (month >= 1 && month <= 12 && day >= 1 && day <= 31) return `${dmy[3]}-${String(month).padStart(2, "0")}`;
+    }
     const date = new Date(ticket?.createdAt || ticket?.updatedAt || 0);
     if (!Number.isFinite(date.getTime())) return "0000-00";
     const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit" }).formatToParts(date);
