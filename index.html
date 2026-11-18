@@ -333,7 +333,7 @@ html.runam-standalone .customer-quick-list > button {
     // Thư viện frontend được phục vụ cục bộ; báo lỗi tải ứng dụng nếu có tài nguyên thiếu.
     window.addEventListener("load", function () {
       setTimeout(function () {
-        if (typeof React === "undefined" || typeof ReactDOM === "undefined" || typeof Babel === "undefined") {
+        if (typeof React === "undefined" || typeof ReactDOM === "undefined") {
           var el = document.getElementById("boot-err");
           if (!el) return;
           el.style.display = "block";
