@@ -363,6 +363,13 @@ html.runam-standalone .customer-quick-list > button {
           el.innerHTML = "<b>Không khởi động được RUNAM.</b><br/>• Đóng rồi mở lại ứng dụng<br/>• Nếu vừa cập nhật, hãy chạy lại tệp EXE mới nhất.";
         }
       }, 4000);
+      setTimeout(function () {
+        if (window.__RUNAM_APP_READY__) return;
+        var el = document.getElementById("boot-err");
+        if (!el || el.style.display === "block") return;
+        el.style.display = "block";
+        el.textContent = "RUNAM chưa tải xong app.js. Hãy chụp màn hình này gửi hỗ trợ; không xóa dữ liệu ứng dụng.";
+      }, 12000);
     });
   </script>
 
