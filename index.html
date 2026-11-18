@@ -330,6 +330,29 @@ html.runam-standalone .customer-quick-list > button {
     html.runam-standalone .customer-code-suggestion-empty,html.runam-ios .customer-code-suggestion-empty{grid-column:1/-1!important;padding:10px!important;text-align:center!important}
   </style>
   <script>
+    // Hiển thị lỗi khởi động thật để chẩn đoán, không thay đổi dữ liệu ứng dụng.
+    (function () {
+      function showBootError(message) {
+        var el = document.getElementById("boot-err");
+        if (!el) return;
+        el.style.display = "block";
+        el.textContent = "RUNAM chưa khởi động được. " + String(message || "Lỗi chưa xác định").slice(0, 500);
+      }
+      window.addEventListener("error", function (event) {
+        var target = event && event.target;
+        if (target && target !== window && (target.src || target.href)) {
+          showBootError("Không tải được tài nguyên: " + (target.src || target.href));
+          return;
+        }
+        showBootError((event && event.message || "Lỗi JavaScript") +
+          (event && event.filename ? " • " + event.filename.split("/").pop() : "") +
+          (event && event.lineno ? ":" + event.lineno : ""));
+      }, true);
+      window.addEventListener("unhandledrejection", function (event) {
+        var reason = event && event.reason;
+        showBootError("Tác vụ khởi động bị lỗi: " + (reason && reason.message || reason || "Promise rejected"));
+      });
+    })();
     // Thư viện frontend được phục vụ cục bộ; báo lỗi tải ứng dụng nếu có tài nguyên thiếu.
     window.addEventListener("load", function () {
       setTimeout(function () {
