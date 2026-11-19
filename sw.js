@@ -1,4 +1,4 @@
-const CACHE_NAME = "pgh-static-v2-6-2-print-ios-v101-shared-settings";
+const CACHE_NAME = "pgh-static-v2-6-2-print-ios-v102-local-priority";
 const APP_ROOT_URL = new URL("./", self.location.href);
 const APP_ROOT_PATH = APP_ROOT_URL.pathname;
 const APP_INDEX_PATH = new URL("index.html", APP_ROOT_URL).pathname;
