@@ -2,7 +2,7 @@
   "use strict";
 
   const DB_NAME = "pgh-offline-v2";
-  const DB_VERSION = 3;
+  const DB_VERSION = 4;
   let dbPromise;
 
   function openDb() {
@@ -12,6 +12,7 @@
       request.onupgradeneeded = event => {
         const db = request.result;
         let tickets;
+        if (!db.objectStoreNames.contains("companyLogo")) db.createObjectStore("companyLogo", { keyPath: "key" });
         if (!db.objectStoreNames.contains("tickets")) tickets = db.createObjectStore("tickets", { keyPath: "key" });
         else tickets = request.transaction.objectStore("tickets");
         if (!tickets.indexNames.contains("owner")) tickets.createIndex("owner", "owner", { unique: false });
@@ -205,6 +206,9 @@
   }
 
   const api = {
+    async saveCompanyLogo(dataUrl) { const db=await openDb(); const tx=db.transaction("companyLogo","readwrite"); tx.objectStore("companyLogo").put({key:"company",logo:dataUrl,updatedAt:new Date().toISOString()}); await transactionDone(tx); return true; },
+    async getCompanyLogo() { const db=await openDb(); const tx=db.transaction("companyLogo","readonly"); const done=transactionDone(tx); const row=await requestResult(tx.objectStore("companyLogo").get("company")); await done; return row?.logo||null; },
+    async deleteCompanyLogo() { const db=await openDb(); const tx=db.transaction("companyLogo","readwrite"); tx.objectStore("companyLogo").delete("company"); await transactionDone(tx); },
     async putTicket(owner, ticket) {
       owner = safeOwner(owner);
       if (!ticket || typeof ticket !== "object") throw new Error("Phiếu offline không hợp lệ.");
