@@ -120,7 +120,7 @@ const getRunamBatchPrintSettings=()=>{
     ${scope} .batch-customer-name,${scope} .batch-recipient-name{font-size:${size('printCustomerName',13)}px!important;font-weight:${weight}!important}
     ${scope} .batch-customer-name b{font-weight:${weight}!important}
     ${scope} table:not(.ticket-meta-columns){font-size:${size('printTableBody',11)}px!important}
-    ${scope} th{font-size:${sizeWithFallback('printTableHeader','tableHeader',11)}px!important;background:${sectionBackground}!important;color:${main};font-weight:${weight};overflow-wrap:break-word!important;word-break:break-all!important}
+    ${scope} th{font-size:${sizeWithFallback('printTableHeader','tableHeader',11)}px!important;background:${theme.tableHeaderBg||sectionBackground}!important;color:${theme.tableHeaderText||main}!important;font-weight:${weight};overflow-wrap:break-word!important;word-break:break-all!important}
     ${scope} th.batch-stt-column,${scope} td.batch-stt-column{min-width:40px!important;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important}     ${scope} table:not(.ticket-meta-columns) td{font-size:${size('printTableBody',11)}px!important;color:${text}}
     ${scope} table:not(.ticket-meta-columns) td,${scope} table:not(.ticket-meta-columns) td *{white-space:normal!important;overflow-wrap:break-word!important;word-break:break-all!important}
     ${scope} .batch-code-fragment,${scope} .batch-header-word{display:inline-block;max-width:100%;vertical-align:top}
