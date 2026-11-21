@@ -113,7 +113,7 @@ const getRunamBatchPrintSettings=()=>{
     ${scope} .ticket-meta{font-weight:400!important}
     ${scope} .ticket-meta b{font-weight:${weight}!important;color:${main}}
     ${scope} .ticket-meta-value{font-size:${size('printInfoValue',11)}px!important;font-weight:400!important;color:${text}}
-    ${scope} .customer{background:${sectionBackground}!important}
+    ${scope} .customer{background:${theme.infoBg||boxBg}!important;color:${theme.infoText||text}!important}
     ${scope} .customer h2{font-size:${sizeWithFallback('printCustomerTitle','printSection',10)}px!important;font-weight:${weight};color:${main}!important}
     ${scope} .customer-details{font-size:${size('printCustomerBody',11)}px!important;font-weight:400!important}
     ${scope} .company-meta,${scope} .customer-details>div{overflow-wrap:break-word!important;word-break:break-all!important}
@@ -162,7 +162,7 @@ const buildRunamTicketPrintPage=(ticket,showInPrint,esc,mobilePrint,printSetting
   });
   let totalQtyText=""; try{ const map={}; products.forEach(pp=>{ const u=pp._unit||""; const v=Number(pp.soGoi)||0; if(!u) return; map[u]=(map[u]||0)+v; }); const keys=Object.keys(map); if(keys.length){ totalQtyText=keys.map(k=>fmt2(map[k])+" "+k).join(" + "); } else { totalQtyText=fmt2(tongSL); } }catch(e){ totalQtyText=fmt2(tongSL); } if(!rows) rows=`<tr><td colspan="7">Khong co san pham</td></tr>`;
   
-  const classicTotalsMarkup=ticketLayout==="classic"?((showInPrint("TongIn")?'<div class="runam-totals runam-classic-totals" style="background:${theme.totalsBg||theme.beige};color:${theme.totalsText||theme.text};padding:8px;border-radius:6px"><div class="runam-classic-total-label">Tổng</div><div class="runam-classic-total-qty">' + totalQtyText.split(" + ").map(value=>esc(value)).join("<br>") + '</div><div class="runam-classic-total-kg">' + fmt2(tongKg) + ' kg</div></div>':"") + (includeGrossWeight?'<div class="runam-classic-gross-weight"><span>Gross Weight</span><span>____________________</span><span>kg</span></div>':"")):null;
+  const classicTotalsMarkup=ticketLayout==="classic"?((showInPrint("TongIn")?'<div class="runam-totals runam-classic-totals" style="background:'+(theme.totalsBg||theme.beige)+';color:'+(theme.totalsText||theme.text)+';padding:8px;border-radius:6px"><div class="runam-classic-total-label">Tổng</div><div class="runam-classic-total-qty">' + totalQtyText.split(" + ").map(value=>esc(value)).join("<br>") + '</div><div class="runam-classic-total-kg">' + fmt2(tongKg) + ' kg</div></div>':"") + (includeGrossWeight?'<div class="runam-classic-gross-weight"><span>Gross Weight</span><span>____________________</span><span>kg</span></div>':"")):null;
   const showMaFastH=showInPrint("MaFastIn");
   const showMaKhoH=showInPrint("MaKhoIn");
   const showTenSPH=showInPrint("TenSPIn");
