@@ -113,7 +113,7 @@ const getRunamBatchPrintSettings=()=>{
     ${scope} .ticket-meta{font-weight:400!important}
     ${scope} .ticket-meta b{font-weight:${weight}!important;color:${main}}
     ${scope} .ticket-meta-value{font-size:${size('printInfoValue',11)}px!important;font-weight:400!important;color:${text}}
-    ${scope} .customer{background:${sectionBackground}!important}
+    ${scope} .customer{background:#F5F6FA!important}
     ${scope} .customer h2{font-size:${sizeWithFallback('printCustomerTitle','printSection',10)}px!important;font-weight:${weight};color:${main}!important}
     ${scope} .customer-details{font-size:${size('printCustomerBody',11)}px!important;font-weight:400!important}
     ${scope} .company-meta,${scope} .customer-details>div{overflow-wrap:break-word!important;word-break:break-all!important}
