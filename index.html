@@ -57,6 +57,15 @@
     .runam-logo { border: none !important; background: transparent !important; }
     /* RUNAM Mobile 2.0 — complete preview-only visual redesign */
     @media screen and (max-width:640px) and (orientation:portrait) {
+      /* Real mobile re-ordering: action strip above ticket; save buttons anchored near bottom */
+      html.runam-ios .pgh-main-layout {display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-areas:"company" "actions" "ticket" "customer" "products" "save"!important;align-content:start!important;gap:10px!important;padding:8px 9px calc(100px + env(safe-area-inset-bottom))!important;}
+      html.runam-ios .mobile-company-header {grid-area:company!important;}
+      html.runam-ios .pgh-actions {grid-area:actions!important;position:sticky!important;top:calc(env(safe-area-inset-top) + 2px)!important;z-index:8!important;max-width:none!important;display:grid!important;grid-template-columns:1fr 1fr 1fr!important;gap:6px!important;padding:5px!important;border-radius:14px!important;background:#fff!important;border:1px solid #e4d9c8!important;box-shadow:0 3px 10px #30211210!important;}
+      html.runam-ios .pgh-actions>div {min-width:0!important;}
+      html.runam-ios .pgh-ticket-card {grid-area:ticket!important;}
+      html.runam-ios .pgh-customer-card {grid-area:customer!important;}
+      html.runam-ios .pgh-products-card {grid-area:products!important;}
+      html.runam-ios .pgh-save-actions {grid-area:save!important;position:sticky!important;bottom:calc(env(safe-area-inset-bottom) + 4px)!important;z-index:9!important;padding:7px!important;background:#fff!important;border:1px solid #e4d9c8!important;border-radius:16px!important;box-shadow:0 6px 22px #30211218!important;}
       html.runam-ios .pgh-main-layout {padding:7px 9px 92px!important;gap:11px!important;background:#f4f1eb!important;}
       html.runam-ios .mobile-company-header {
         display:grid!important;grid-template-columns:58px minmax(0,1fr)!important;gap:10px!important;
