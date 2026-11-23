@@ -55,6 +55,31 @@
     .no-print { }
     @media print { #root { zoom: 1 !important; } }
     .runam-logo { border: none !important; background: transparent !important; }
+    /* RUNAM PWA layout experiment: compact workspace, standalone iPhone only */
+    @media screen and (max-width: 640px) and (orientation: portrait) {
+      html.runam-ios.runam-standalone #root > div > div {
+        max-width: 100% !important;
+        padding: 8px 10px 92px !important;
+        gap: 10px !important;
+      }
+      html.runam-ios.runam-standalone .mobile-company-header {
+        flex-direction: row !important; align-items: center !important; gap: 10px !important;
+        padding: 10px !important; border-radius: 14px !important;
+      }
+      html.runam-ios.runam-standalone .mobile-company-logo { align-self: auto !important; }
+      html.runam-ios.runam-standalone .mobile-company-logo .runam-logo { width: 52px !important; height: 52px !important; border-radius: 10px !important; }
+      html.runam-ios.runam-standalone .mobile-company-info { flex: 1 1 auto !important; min-width: 0 !important; width: auto !important; }
+      html.runam-ios.runam-standalone .mobile-company-info input { padding: 5px 8px !important; font-size: 12px !important; }
+      html.runam-ios.runam-standalone .mobile-company-info input.font-display { font-size: 14px !important; }
+      html.runam-ios.runam-standalone .mobile-company-contact { flex-direction: row !important; gap: 5px !important; }
+      html.runam-ios.runam-standalone .mobile-company-contact input { min-width: 0 !important; width: 50% !important; padding: 4px 7px !important; font-size: 11px !important; }
+      html.runam-ios.runam-standalone .mobile-company-status { display: none !important; }
+      html.runam-ios.runam-standalone .customer-heading-row { gap: 6px !important; }
+      html.runam-ios.runam-standalone .customer-quick-list { gap: 4px !important; }
+      html.runam-ios.runam-standalone .customer-quick-list > button { height: 30px !important; font-size: 10px !important; }
+      html.runam-ios.runam-standalone .pgh-add-customer { height: 30px !important; }
+    }
+
 
     @media screen and (max-width: 640px) and (orientation: portrait) {
       .mobile-company-header { flex-direction: column !important; align-items: stretch !important; gap: 10px !important; }
