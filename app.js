@@ -97,7 +97,7 @@ const getRunamBatchPrintSettings=()=>{
   const localizedLabels={...DEFAULT_LABELS,...(LANGUAGE_LABELS[selectedLanguage]||{}),...labels};
   const label=(key,fallback)=>{const value=localizedLabels[key];return pghPrintEscape(typeof value==='string'&&value!==DEFAULT_LABELS[key]?value:fallback);};
   const metaKeys={SoPhieuIn:'soPhieu',SoPhieuXuatIn:'soPhieuXuat',SoPOIn:'soPO',NgayGiaoIn:'ngayGiao'};
-  const background=color('bg','#FDFBF7')===DEFAULT_THEME.bg?'#fff':color('bg','#fff');const sectionBackground=background==='#fff'?color('beige','#FFFBEB'):background;
+  const sectionBackground=color('main','#3C2415');
   const settings={size,changed,label,logoSize,qrSize,language:selectedLanguage,hasCustomLabel:key=>typeof localizedLabels[key]==='string'&&localizedLabels[key]!==DEFAULT_LABELS[key],breakable:value=>pghPrintEscape(value).split('-').map((part,index,parts)=>`<span class="batch-code-fragment">${part}${index<parts.length-1?'-':''}</span>`).join('<wbr>'),documentTitle:count=>pghPrintEscape(selectedLanguage==='en'?`Print ${count} RUNAM tickets`:selectedLanguage==='it'?`Stampa ${count} documenti RUNAM`:`In ${count} phiếu RUNAM`),emptyProducts:pghPrintEscape(selectedLanguage==='en'?'No products':selectedLanguage==='it'?'Nessun prodotto':'Không có sản phẩm'),metaKeys,metaSize:flag=>sizeWithFallback(metaKeys[flag],'printInfoLabel',11)};
   const main=color('main','#3C2415'),beige=color('beige','#FFFBEB'),text=color('text','#111827');
   const scope='.batch-card[data-runam-settings]';
@@ -120,7 +120,7 @@ const getRunamBatchPrintSettings=()=>{
     ${scope} .batch-customer-name,${scope} .batch-recipient-name{font-size:${size('printCustomerName',13)}px!important;font-weight:${weight}!important}
     ${scope} .batch-customer-name b{font-weight:${weight}!important}
     ${scope} table:not(.ticket-meta-columns){font-size:${size('printTableBody',11)}px!important}
-    ${scope} th{font-size:${sizeWithFallback('printTableHeader','tableHeader',11)}px!important;background:${sectionBackground}!important;color:${main};font-weight:${weight};overflow-wrap:break-word!important;word-break:break-all!important}
+    ${scope} th{font-size:${sizeWithFallback('printTableHeader','tableHeader',11)}px!important;background:${sectionBackground}!important;color:${contrastText(sectionBackground)}!important;font-weight:${weight};overflow-wrap:break-word!important;word-break:break-all!important}
     ${scope} th.batch-stt-column,${scope} td.batch-stt-column{min-width:40px!important;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important}     ${scope} table:not(.ticket-meta-columns) td{font-size:${size('printTableBody',11)}px!important;color:${text}}
     ${scope} table:not(.ticket-meta-columns) td,${scope} table:not(.ticket-meta-columns) td *{white-space:normal!important;overflow-wrap:break-word!important;word-break:break-all!important}
     ${scope} .batch-code-fragment,${scope} .batch-header-word{display:inline-block;max-width:100%;vertical-align:top}
