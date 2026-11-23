@@ -55,101 +55,57 @@
     .no-print { }
     @media print { #root { zoom: 1 !important; } }
     .runam-logo { border: none !important; background: transparent !important; }
-    /* RUNAM preview — intentional mobile layout redesign */
-    @media screen and (max-width: 640px) and (orientation: portrait) {
-      html.runam-ios .pgh-main-layout {
-        padding: 6px 8px 90px !important; gap: 9px !important;
-      }
+    /* RUNAM Mobile 2.0 — complete preview-only visual redesign */
+    @media screen and (max-width:640px) and (orientation:portrait) {
+      html.runam-ios .pgh-main-layout {padding:7px 9px 92px!important;gap:11px!important;background:#f4f1eb!important;}
       html.runam-ios .mobile-company-header {
-        display: grid !important; grid-template-columns: 52px minmax(0,1fr) !important;
-        gap: 8px !important; align-items: center !important;
-        padding: 9px !important; border-radius: 13px !important;
+        display:grid!important;grid-template-columns:58px minmax(0,1fr)!important;gap:10px!important;
+        align-items:center!important;padding:12px!important;border:1px solid #e3d9ca!important;
+        border-radius:17px!important;background:#fff!important;box-shadow:0 3px 12px #3523150a!important;
       }
-      html.runam-ios .mobile-company-logo { flex-shrink: 0 !important; }
-      html.runam-ios .mobile-company-logo .runam-logo {
-        width: 48px !important; height: 48px !important; border-radius: 9px !important;
-      }
-      html.runam-ios .mobile-company-info { min-width: 0 !important; width: 100% !important; }
-      html.runam-ios .mobile-company-info > div { gap: 5px !important; }
-      html.runam-ios .mobile-company-info input {
-        height: 34px !important; min-width: 0 !important; width: 100% !important;
-        padding: 4px 8px !important; font-size: 11px !important; border-radius: 8px !important;
-      }
-      html.runam-ios .mobile-company-info input.font-display { font-size: 13px !important; }
-      html.runam-ios .mobile-company-contact {
-        display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 5px !important;
-      }
-      html.runam-ios .mobile-company-status { display: none !important; }
+      html.runam-ios .mobile-company-logo .runam-logo {width:56px!important;height:56px!important;border-radius:14px!important;}
+      html.runam-ios .mobile-company-info {width:100%!important;min-width:0!important;}
+      html.runam-ios .mobile-company-info>div {gap:6px!important;}
+      html.runam-ios .mobile-company-info input {height:36px!important;min-height:36px!important;width:100%!important;min-width:0!important;padding:5px 9px!important;border-radius:10px!important;font-size:12px!important;background:#faf8f4!important;border:1px solid #e6e0d7!important;}
+      html.runam-ios .mobile-company-info input.font-display {font-size:14px!important;font-weight:700!important;}
+      html.runam-ios .mobile-company-contact {display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important;}
+      html.runam-ios .mobile-company-status {display:none!important;}
 
-      /* Ticket panel becomes a compact two-column dashboard card */
+      /* ticket: new cream-and-ink dashboard card, no giant dark panel */
       html.runam-ios .pgh-ticket-card {
-        padding: 12px !important; border-radius: 13px !important;
-        box-shadow: 0 3px 12px rgba(60,36,21,.12) !important;
+        display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;
+        padding:13px!important;border-radius:17px!important;background:#fff!important;color:#33251b!important;
+        border:1px solid #e4d9c8!important;box-shadow:0 4px 14px #3021120b!important;
       }
-      html.runam-ios .pgh-ticket-card > div:first-child {
-        display: grid !important; grid-template-columns: minmax(0,1fr) auto !important;
-        gap: 6px 9px !important; align-items: end !important;
-      }
-      html.runam-ios .pgh-ticket-card > div:first-child > div:first-child {
-        grid-column: 1 / -1 !important;
-      }
-      html.runam-ios .pgh-ticket-card input {
-        height: 42px !important; min-height: 42px !important;
-        padding: 7px 10px !important; border-radius: 10px !important;
-        font-size: 13px !important; box-sizing: border-box !important;
-      }
-      html.runam-ios .pgh-ticket-card button { height: 42px !important; min-height: 42px !important; border-radius: 10px !important; }
-      html.runam-ios .pgh-ticket-card > div:nth-child(2),
-      html.runam-ios .pgh-ticket-card > div:nth-child(3) {
-        display: grid !important; grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important;
-        align-items: center !important; gap: 6px 9px !important;
-      }
-      html.runam-ios .pgh-ticket-card > div:nth-child(2) > div,
-      html.runam-ios .pgh-ticket-card > div:nth-child(3) > div { grid-column: 1 / -1 !important; }
-      html.runam-ios .pgh-ticket-card > div:nth-child(2) input,
-      html.runam-ios .pgh-ticket-card > div:nth-child(3) input { height: 40px !important; }
+      html.runam-ios .pgh-ticket-card>div:first-child {grid-column:1/-1!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:7px!important;align-items:end!important;}
+      html.runam-ios .pgh-ticket-card>div:first-child>div:first-child {grid-column:1/-1!important;color:#8a755b!important;letter-spacing:.13em!important;font-size:10px!important;}
+      html.runam-ios .pgh-ticket-card>div:nth-child(2),html.runam-ios .pgh-ticket-card>div:nth-child(3),html.runam-ios .pgh-ticket-card>div:nth-child(4) {display:flex!important;flex-direction:column!important;gap:5px!important;min-width:0!important;}
+      html.runam-ios .pgh-ticket-card>div:nth-child(2)>div,html.runam-ios .pgh-ticket-card>div:nth-child(3)>div,html.runam-ios .pgh-ticket-card>div:nth-child(4)>div {font-size:10px!important;letter-spacing:.12em!important;color:#8a755b!important;}
+      html.runam-ios .pgh-ticket-card>div:nth-child(2) {grid-column:1/-1!important;}
+      html.runam-ios .pgh-ticket-card input {height:43px!important;min-height:43px!important;width:100%!important;box-sizing:border-box!important;padding:8px 11px!important;border-radius:11px!important;font-size:14px!important;color:#33251b!important;background:#fbfaf7!important;border:1px solid #e4d9c8!important;}
+      html.runam-ios .pgh-ticket-card button {height:43px!important;min-height:43px!important;padding:0 13px!important;border-radius:11px!important;background:#342419!important;color:#fff!important;font-size:12px!important;font-weight:700!important;border:0!important;}
+      html.runam-ios .pgh-ticket-card>div:nth-child(4) {grid-column:1/-1!important;}
+      html.runam-ios .pgh-ticket-card>div:nth-child(4) input {text-align:center!important;font-weight:600!important;}
 
-      /* Actions wrap into clean, full-width tiles */
-      html.runam-ios .pgh-actions {
-        display: grid !important; grid-template-columns: 1fr 1fr !important;
-        gap: 7px !important; max-width: none !important; margin: 0 !important;
-        overflow: visible !important;
-      }
-      html.runam-ios .pgh-actions > button {
-        height: 42px !important; min-height: 42px !important; width: 100% !important;
-        min-width: 0 !important; border-radius: 11px !important; font-size: 12px !important;
-        padding: 0 5px !important; white-space: normal !important;
-      }
-      html.runam-ios .pgh-actions > div {
-        grid-column: 1 / -1 !important; width: 100% !important; min-width: 0 !important;
-        height: 40px !important; box-sizing: border-box !important;
-      }
-      html.runam-ios .pgh-actions > div button { height: 34px !important; font-size: 12px !important; }
+      /* controls are two clean rows with a segmented paper picker */
+      html.runam-ios .pgh-actions {display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;max-width:none!important;margin:0!important;overflow:visible!important;}
+      html.runam-ios .pgh-actions>button {width:100%!important;min-width:0!important;height:45px!important;min-height:45px!important;border-radius:13px!important;font-size:12px!important;font-weight:700!important;padding:0 7px!important;white-space:normal!important;box-shadow:none!important;}
+      html.runam-ios .pgh-actions>button:first-child {background:#342419!important;color:#fff!important;border:1px solid #342419!important;}
+      html.runam-ios .pgh-actions>button:nth-child(2) {background:#fff!important;color:#342419!important;border:1px solid #ded5c7!important;}
+      html.runam-ios .pgh-actions>div {grid-column:1/-1!important;width:100%!important;min-width:0!important;height:43px!important;box-sizing:border-box!important;padding:3px!important;background:#eae4da!important;border-radius:12px!important;border:0!important;}
+      html.runam-ios .pgh-actions>div button {height:37px!important;font-size:12px!important;border-radius:9px!important;}
 
-      /* Customer and product panels */
-      html.runam-ios .pgh-customer-card,
-      html.runam-ios .pgh-products-card {
-        padding: 10px !important; border-radius: 13px !important; gap: 9px !important;
-      }
-      html.runam-ios .customer-heading-row {
-        display: grid !important; grid-template-columns: 1fr auto !important;
-        gap: 6px !important; align-items: center !important;
-      }
-      html.runam-ios .customer-quick-list {
-        grid-column: 1 / -1 !important; grid-template-columns: repeat(3,minmax(0,1fr)) !important;
-        gap: 5px !important; min-width: 0 !important;
-      }
-      html.runam-ios .customer-quick-list > button { height: 30px !important; font-size: 10px !important; padding: 0 5px !important; }
-      html.runam-ios .pgh-add-customer { height: 34px !important; font-size: 11px !important; padding: 0 9px !important; }
-      html.runam-ios .pgh-customer-card input,
-      html.runam-ios .pgh-customer-card select { min-height: 42px !important; height: 42px !important; padding: 8px 10px !important; font-size: 13px !important; }
-      html.runam-ios .pgh-products-card > div:first-child { padding: 9px 10px !important; }
-      html.runam-ios .pgh-products-card button { min-height: 34px !important; height: auto !important; font-size: 11px !important; padding: 6px 9px !important; }
-      html.runam-ios .pgh-products-card input,
-      html.runam-ios .pgh-products-card select { height: 40px !important; min-height: 40px !important; font-size: 12px !important; padding: 7px 8px !important; }
-
-      /* Avoid oversized floating menu buttons overlapping form controls */
-      html.runam-ios [style*="position: fixed"] { max-width: 48px !important; }
+      /* separate sections like modern mobile forms */
+      html.runam-ios .pgh-customer-card,html.runam-ios .pgh-products-card {padding:12px!important;border-radius:16px!important;gap:10px!important;background:#fff!important;border:1px solid #e5ddd1!important;box-shadow:0 3px 12px #34241908!important;}
+      html.runam-ios .customer-heading-row {display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;align-items:center!important;}
+      html.runam-ios .customer-quick-list {grid-column:1/-1!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;min-width:0!important;}
+      html.runam-ios .customer-quick-list>button {height:34px!important;font-size:11px!important;padding:0 5px!important;border-radius:10px!important;}
+      html.runam-ios .pgh-add-customer {height:36px!important;font-size:11px!important;padding:0 10px!important;border-radius:10px!important;}
+      html.runam-ios .pgh-customer-card input,html.runam-ios .pgh-customer-card select {height:44px!important;min-height:44px!important;padding:9px 12px!important;font-size:14px!important;border-radius:12px!important;background:#fbfaf7!important;border-color:#e4d9c8!important;}
+      html.runam-ios .pgh-products-card>div:first-child {padding:11px 12px!important;background:#f6f2ec!important;}
+      html.runam-ios .pgh-products-card button {min-height:38px!important;height:auto!important;font-size:12px!important;padding:7px 10px!important;border-radius:11px!important;}
+      html.runam-ios .pgh-products-card input,html.runam-ios .pgh-products-card select {height:42px!important;min-height:42px!important;font-size:13px!important;padding:8px 9px!important;border-radius:11px!important;}
+      html.runam-ios [style*="position: fixed"] {max-width:48px!important;}
     }
 </style>
 <style id="runam-mobile-customer-grid-v14">
