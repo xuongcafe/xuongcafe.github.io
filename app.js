@@ -209,7 +209,7 @@ const buildRunamTicketPrintPage=(ticket,showInPrint,esc,mobilePrint,printSetting
     .runam-interface2 table tbody tr:not(.pgh-tot):nth-child(even) td{background:${theme.productRowBg||"#F2E7D5"}!important}
     .runam-interface2 table .pgh-c-name{white-space:nowrap!important;width:100%}
     .runam-interface2 table th.pgh-th-num{text-align:right}
-    .runam-interface2 table tbody tr.pgh-tot td{border-bottom:0!important;padding:.7mm 2.2mm!important;background:transparent!important;line-height:1.25}
+    .runam-interface2 table tbody tr.pgh-tot td{border-bottom:0!important;padding:2.2mm!important;vertical-align:middle!important;background:transparent!important;line-height:1.25}
     .batch-card.runam-interface2 .runam-info-row>.runam-i2-card{background:${theme.boxBg||theme.beige||"#FFFFFF"}!important;border:0!important;border-radius:10px!important;padding:4mm!important;min-width:0}
     .batch-card.runam-interface2 table:not(.ticket-meta-columns) td,.batch-card.runam-interface2 table:not(.ticket-meta-columns) td *,.batch-card.runam-interface2[data-runam-settings] table:not(.ticket-meta-columns) td,.batch-card.runam-interface2[data-runam-settings] table:not(.ticket-meta-columns) td *{white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important}
     .batch-card.runam-interface2 table:not(.ticket-meta-columns) td.pgh-c-name,.batch-card.runam-interface2[data-runam-settings] table:not(.ticket-meta-columns) td.pgh-c-name,.batch-card.runam-interface2 table:not(.ticket-meta-columns) td.pgh-c-name *,.batch-card.runam-interface2[data-runam-settings] table:not(.ticket-meta-columns) td.pgh-c-name *{white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important}
